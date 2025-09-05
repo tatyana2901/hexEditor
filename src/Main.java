@@ -1,15 +1,29 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import controller.HexEditorController;
+import model.HexEditorModel;
+import model.HexTableModel;
+import view.HexEditorView;
+import view.components.BlockBytesMenuBar;
+import view.components.FileSelectionPanel;
+import view.components.LinesAndItemsSettingsPanel;
+import view.components.PaginationPanel;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+public class Main {
+
+
+    public static void main(String[] args) {
+        HexEditorModel editorModel = new HexEditorModel();
+
+        //Создание UI - элементов во view
+        HexTableModel tableModel = new HexTableModel(editorModel);
+        FileSelectionPanel fileSelectionPanel = new FileSelectionPanel();
+        PaginationPanel paginationPanel = new PaginationPanel();
+        LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
+        BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
+
+        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar);
+
+        new HexEditorController(view, editorModel);
+
+
     }
 }

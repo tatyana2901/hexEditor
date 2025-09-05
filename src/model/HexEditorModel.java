@@ -1,0 +1,179 @@
+package model;
+
+import model.cache.PageCache;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HexEditorModel {
+
+    //String dataType - формат данных - short,byte,int,float ...
+    List<Object> data;//- список объектов для передачи в таблицу jtable/ при передаче или после передачи объект должны конветироваться специальными методами в нужные типы данных
+
+    private int itemsPerLine = 16; // количество элементов в одной строке по умолчанию 16
+    private int linesPerPage = 16; // количество строк на странице, может быть изменено пользователем. по умолчанию 10
+    private int currentPageNumber = 1; // номер текущей страницы
+    private long fileSize;
+    private long totalPages;
+    private File file;
+    private boolean signed = true; // по умолчанию отображение со знаком
+    private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
+
+
+    public HexEditorModel() {
+        this.data = new ArrayList<>();
+    }
+
+    public List<Object> getData() {
+        return data;
+    }
+
+    public void setData(List<Object> data) {
+        this.data = data;
+    }
+
+    public int getItemsPerLine() {
+        return itemsPerLine;
+    }
+
+    public void setItemsPerLine(int itemsPerLine) {
+        this.itemsPerLine = itemsPerLine;
+        PageCache.clearCache(); //очищаем кэш после изменения количества столбцов на странице
+        calculateTotalPages();
+    }
+
+    public boolean isSigned() {
+        return signed;
+    }
+
+    public void setSigned(boolean signed) {
+        this.signed = signed;
+    }
+
+    public int getLinesPerPage() {
+        return linesPerPage;
+    }
+
+    public void setLinesPerPage(int linesPerPage) {
+        this.linesPerPage = linesPerPage;
+        PageCache.clearCache(); //очищаем кэш после изменения количесва строк на странице
+        calculateTotalPages();
+    }
+
+    public DataType getType() {
+        return type;
+    }
+
+    public void setType(DataType type) {
+        this.type = type;
+        PageCache.clearCache(); //очищаем кэш после изменения настроек отображения блоками байт
+        calculateTotalPages(); //пересчитываем количество страниц
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public int getCurrentPageNumber() {
+        return currentPageNumber;
+    }
+
+
+    public long getTotalPages() {
+        return totalPages;
+    }
+
+    public int pageSize() {
+        return linesPerPage * itemsPerLine;
+    }//количество item??? на странице. Для отображения по 1 бату items = кол-во байт
+
+    private void calculateTotalPages() {
+
+        totalPages = (int) Math.ceil((double) fileSize / (itemsPerLine * linesPerPage * type.getBlockSize()));
+    }
+
+
+    private List<Object> readPageData(int pageNumber) throws IOException {
+        /*если модификатор доступа поменяется на public, то нужно будет добавить проверки
+        if (file == null) {
+        throw new IllegalStateException("Файл не открыт. Сначала выберите файл.");
+    }if (pageNumber < 1 || pageNumber > totalPages) {
+        throw new IllegalArgumentException("Некорректный номер страницы.");
+    }*/
+        List<Byte> bytesPageData = new ArrayList<>();
+        long startPosition = (pageNumber - 1) * (long) itemsPerLine * linesPerPage * type.getBlockSize();
+
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+
+            raf.seek(startPosition); //устанавливаем курсор на начальной позиции нужной страницы
+
+            int bytesToRead = Math.min(pageSize() * type.getBlockSize(), (int) (fileSize - startPosition));
+            for (int i = 0; i < bytesToRead; i++) {
+                bytesPageData.add(raf.readByte());
+            }
+        }
+
+        List<Object> objectPageData = BlockDataConverter.convertToTypedObjectList(bytesPageData, type); //конвертируем список байтов в нужный тип числа
+
+
+        PageCache.addCachePage(new PageCache(objectPageData, pageNumber)); //кладем прочитанную страницу в кэш
+        // System.out.println(bytesPageData.size());
+        // System.out.println(objectPageData); //ТЕСТ
+        return objectPageData;
+    }
+
+    public void displayPage(int pageNumber) throws IOException {
+
+        if (pageNumber < 1 || pageNumber > totalPages) {
+            throw new IllegalArgumentException("Задан некорректный номер страницы!");
+        }
+        if (file == null) {
+            throw new IllegalStateException("Файл не открыт. Сначала выберите файл.");
+        }
+        if (PageCache.isPageInCache(pageNumber)) {
+            data = PageCache.getCachedPageByNumber(pageNumber); // берем страницу из кэша
+        } else {
+            data = readPageData(pageNumber); // читаем страницу из файла
+        }
+
+        currentPageNumber = pageNumber;
+    }
+
+    public void initializeModel(File file) {
+
+
+        if (file == null) {
+            throw new IllegalArgumentException("Файл не может быть null.");
+        }
+        if (!file.exists()) {
+            throw new IllegalArgumentException("Файла с таким названием не существует.");
+        }
+        PageCache.clearCache(); //очистка кэша
+        data.clear(); //очистка данных текущей страницы
+        this.file = file;
+        this.fileSize = file.length();
+        calculateTotalPages();
+    }
+
+
+
+    /*getValueAt(int row, int col): Возвращает значение байта по индексу.
+    setValueAt(byte value, int row, int col): Устанавливает значение байта по индексу.*/
+
+
+}
