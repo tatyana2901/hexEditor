@@ -1,13 +1,11 @@
 package view;
 
 import model.HexTableModel;
-import view.components.BlockBytesMenuBar;
-import view.components.FileSelectionPanel;
-import view.components.LinesAndItemsSettingsPanel;
-import view.components.PaginationPanel;
+import view.components.*;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -18,11 +16,13 @@ public class HexEditorView extends JFrame {
     private PaginationPanel paginationPanel;
     private LinesAndItemsSettingsPanel settingsPanel;
     private BlockBytesMenuBar blockBytesMenuBar;
+    private LabelInfoPanel labelInfoPanel;
+    private JTable dataTable;
 
     //ЗАМЕНИТЬ НА ИНТЕРФЕЙСЫ????
     public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
-                         BlockBytesMenuBar blockBytesMenuBar) {
+                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel) {
         super("HexEditor");
 
         this.tableModel = tableModel;
@@ -30,6 +30,8 @@ public class HexEditorView extends JFrame {
         this.paginationPanel = paginationPanel;
         this.settingsPanel = settingsPanel;
         this.blockBytesMenuBar = blockBytesMenuBar;
+        this.labelInfoPanel = labelInfoPanel;
+        this.dataTable = new JTable(tableModel);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -38,7 +40,7 @@ public class HexEditorView extends JFrame {
         getContentPane().add(panel);
         setPreferredSize(new Dimension(260, 220));
 
-        JTable dataTable = new JTable(tableModel);
+
         JScrollPane scrollPane = new JScrollPane(dataTable);
 
         panel.add(fileSelectionPanel);
@@ -46,6 +48,7 @@ public class HexEditorView extends JFrame {
         panel.add(paginationPanel);
         panel.add(settingsPanel);
         setJMenuBar(blockBytesMenuBar);
+        panel.add(labelInfoPanel);
 
         pack();
         setLocationRelativeTo(null);
@@ -114,6 +117,20 @@ public class HexEditorView extends JFrame {
         blockBytesMenuBar.setIntegerSignOptionsEnabled(enabled);
 
     }
+    //Получение значения выделенной ячейки
+    public int getSelectedRow() {
+        return dataTable.getSelectedRow();
+    }
+
+    //Получение значения выделенной колонки
+    public int getSelectedColumn() {
+        return dataTable.getSelectedColumn();
+    }
+
+    public LabelInfoPanel getLabelInfoPanel() {
+        return labelInfoPanel;
+    }
+
 
 
     //LISTENERS
@@ -146,8 +163,13 @@ public class HexEditorView extends JFrame {
     public void addSignedItemListener(ActionListener listener) {
         blockBytesMenuBar.addSignedItemListener(listener);
     }
+
     public void addUnsignedItemListener(ActionListener listener) {
         blockBytesMenuBar.addUnsignedItemListener(listener);
+    }
+
+    public void addTableSelectionListener(ListSelectionListener listener) {
+        dataTable.getSelectionModel().addListSelectionListener(listener);
     }
 
 

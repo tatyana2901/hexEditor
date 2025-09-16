@@ -2,10 +2,7 @@ import controller.HexEditorController;
 import model.HexEditorModel;
 import model.HexTableModel;
 import view.HexEditorView;
-import view.components.BlockBytesMenuBar;
-import view.components.FileSelectionPanel;
-import view.components.LinesAndItemsSettingsPanel;
-import view.components.PaginationPanel;
+import view.components.*;
 
 public class Main {
 
@@ -19,8 +16,9 @@ public class Main {
         PaginationPanel paginationPanel = new PaginationPanel();
         LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
         BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
+        LabelInfoPanel labelInfoPanel = new LabelInfoPanel();
 
-        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar);
+        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar,labelInfoPanel);
 
         new HexEditorController(view, editorModel);
 

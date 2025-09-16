@@ -170,10 +170,19 @@ public class HexEditorModel {
         calculateTotalPages();
     }
 
+    public Object getValueAtTableCoordinates(int row, int column) {
+        if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
+
+        int index = row * itemsPerLine + (column - 1);
+        if (index >= 0 && index < data.size()) {
+            return data.get(index);
+        }
+        System.err.println("Выход за пределы значений индексов таблицы.");
+        throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
+    }
 
 
-    /*getValueAt(int row, int col): Возвращает значение байта по индексу.
-    setValueAt(byte value, int row, int col): Устанавливает значение байта по индексу.*/
+
 
 
 }

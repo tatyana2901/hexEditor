@@ -2,6 +2,7 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
+import model.HexTableModel;
 import view.HexEditorView;
 
 import javax.swing.*;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class HexEditorController {
     private HexEditorView view;
     private HexEditorModel editorModel;
+
 
     public HexEditorController(HexEditorView view, HexEditorModel editorModel) {
         this.view = view;
@@ -33,7 +35,7 @@ public class HexEditorController {
         view.addSignedItemListener(e -> setSigned(true));
         view.addUnsignedItemListener(e -> setSigned(false));
 
-
+        setupTableSelectionListener();
     }
 
 
@@ -181,6 +183,40 @@ public class HexEditorController {
             view.updateTableData();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void setupTableSelectionListener() {
+        view.addTableSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                onTableSelectionChanged();
+            }
+        });
+    }
+
+    private void onTableSelectionChanged() {
+        int selectedRow = view.getSelectedRow();
+        int selectedColumn = view.getSelectedColumn();
+
+        if (selectedRow >= 0 && selectedColumn > 0) {
+            try {
+                Object value = editorModel.getValueAtTableCoordinates(selectedRow, selectedColumn);
+
+                if (value instanceof Byte) {
+                    byte byteValue = (Byte) value;
+                    view.getLabelInfoPanel().setByteValue(byteValue);
+                } else {
+                    view.getLabelInfoPanel().clear();
+                }
+
+            } catch (Exception ex) {
+                view.getLabelInfoPanel().clear();
+                JOptionPane.showMessageDialog(view, "Ошибка: " + ex.getMessage(),
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            view.getLabelInfoPanel().clear();
         }
     }
 
