@@ -2,7 +2,6 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
-import model.HexTableModel;
 import view.HexEditorView;
 
 import javax.swing.*;
@@ -188,14 +187,14 @@ public class HexEditorController {
 
 
     private void setupTableSelectionListener() {
-        view.addTableSelectionListener(e -> {
+        view.addByteSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                onTableSelectionChanged();
+                onByteSelectionChanged();
             }
         });
     }
 
-    private void onTableSelectionChanged() {
+    private void onByteSelectionChanged() {
         int selectedRow = view.getSelectedRow();
         int selectedColumn = view.getSelectedColumn();
 

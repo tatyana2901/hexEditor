@@ -168,7 +168,7 @@ public class HexEditorView extends JFrame {
         blockBytesMenuBar.addUnsignedItemListener(listener);
     }
 
-    public void addTableSelectionListener(ListSelectionListener listener) {
+    public void addByteSelectionListener(ListSelectionListener listener) {
         dataTable.getSelectionModel().addListSelectionListener(listener);
     }
 
