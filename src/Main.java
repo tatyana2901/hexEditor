@@ -1,5 +1,6 @@
 import controller.HexEditorController;
 import model.HexEditorModel;
+import model.HexSearchService;
 import model.HexTableModel;
 import view.HexEditorView;
 import view.components.*;
@@ -17,10 +18,12 @@ public class Main {
         LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
         BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
         LabelInfoPanel labelInfoPanel = new LabelInfoPanel();
+        SearchPanel searchPanel = new SearchPanel();
+        HexSearchService searchService = new HexSearchService(editorModel);
 
-        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar,labelInfoPanel);
+        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar, labelInfoPanel, searchPanel);
 
-        new HexEditorController(view, editorModel);
+        new HexEditorController(view, editorModel, searchService);
 
 
     }

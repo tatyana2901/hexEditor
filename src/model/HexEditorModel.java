@@ -98,7 +98,7 @@ public class HexEditorModel {
         return totalPages;
     }
 
-    public int pageSize() {
+    public int getItemsPerPage() {
         return linesPerPage * itemsPerLine;
     }//количество item??? на странице. Для отображения по 1 бату items = кол-во байт
 
@@ -122,7 +122,7 @@ public class HexEditorModel {
 
             raf.seek(startPosition); //устанавливаем курсор на начальной позиции нужной страницы
 
-            int bytesToRead = Math.min(pageSize() * type.getBlockSize(), (int) (fileSize - startPosition));
+            int bytesToRead = Math.min(getItemsPerPage() * type.getBlockSize(), (int) (fileSize - startPosition));
             for (int i = 0; i < bytesToRead; i++) {
                 bytesPageData.add(raf.readByte());
             }
@@ -170,15 +170,47 @@ public class HexEditorModel {
         calculateTotalPages();
     }
 
-    public Object getValueAtTableCoordinates(int row, int column) {
-        if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
 
-        int index = row * itemsPerLine + (column - 1);
-        if (index >= 0 && index < data.size()) {
-            return data.get(index);
+
+    public List<Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
+        List<Integer> positions = new ArrayList<>();
+
+        if (file == null) {
+            throw new IllegalStateException("Файл не открыт");
         }
-        System.err.println("Выход за пределы значений индексов таблицы.");
-        throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
+
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+            byte[] buffer = new byte[searchPattern.length];
+            long fileSize = raf.length();
+
+            for (long i = 0; i <= fileSize - searchPattern.length; i++) { //i - номер байта в файле
+                raf.seek(i);
+                raf.readFully(buffer);
+
+                boolean match = true;
+                for (int j = 0; j < searchPattern.length; j++) {
+                    if (mask != null) {
+                        // Применяем маску: учитываем только биты, где mask[j] != 0
+                        if ((buffer[j] & mask[j]) != (searchPattern[j] & mask[j])) {
+                            match = false;
+                            break;
+                        }
+                    } else {
+                        // Без маски - точное совпадение
+                        if (buffer[j] != searchPattern[j]) {
+                            match = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (match) {
+                    positions.add((int) i);
+                }
+            }
+        }
+
+        return positions;
     }
 
 

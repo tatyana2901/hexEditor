@@ -17,12 +17,13 @@ public class HexEditorView extends JFrame {
     private LinesAndItemsSettingsPanel settingsPanel;
     private BlockBytesMenuBar blockBytesMenuBar;
     private LabelInfoPanel labelInfoPanel;
+    private SearchPanel searchPanel;
     private JTable dataTable;
 
     //ЗАМЕНИТЬ НА ИНТЕРФЕЙСЫ????
     public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
-                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel) {
+                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel) {
         super("HexEditor");
 
         this.tableModel = tableModel;
@@ -31,6 +32,7 @@ public class HexEditorView extends JFrame {
         this.settingsPanel = settingsPanel;
         this.blockBytesMenuBar = blockBytesMenuBar;
         this.labelInfoPanel = labelInfoPanel;
+        this.searchPanel = searchPanel;
         this.dataTable = new JTable(tableModel);
 
         JPanel panel = new JPanel();
@@ -49,6 +51,7 @@ public class HexEditorView extends JFrame {
         panel.add(settingsPanel);
         setJMenuBar(blockBytesMenuBar);
         panel.add(labelInfoPanel);
+        panel.add(searchPanel);
 
         pack();
         setLocationRelativeTo(null);
@@ -103,34 +106,13 @@ public class HexEditorView extends JFrame {
         return blockBytesMenuBar.getDoubleItem();
     }
 
-
-    //SETTERS
-
-    // Метод для отображения инфо о количестве страниц и текущей страницы
-    public void setPageInfo(int currentPage, int totalPages) {
-        paginationPanel.getPageInfoLabel().setText(" / " + totalPages);
-        paginationPanel.getPageNumberField().setText(String.valueOf(currentPage));
+    public JTextField getSearchPattern() {
+        return searchPanel.getSearchField();
     }
 
-    // Метод для включения/выключения опций "со знаком/без знака"
-    public void setIntegerSignOptionsEnabled(boolean enabled) {
-        blockBytesMenuBar.setIntegerSignOptionsEnabled(enabled);
-
+    public JTextField getSearchMask() {
+        return searchPanel.getMaskField();
     }
-    //Получение значения выделенной ячейки
-    public int getSelectedRow() {
-        return dataTable.getSelectedRow();
-    }
-
-    //Получение значения выделенной колонки
-    public int getSelectedColumn() {
-        return dataTable.getSelectedColumn();
-    }
-
-    public LabelInfoPanel getLabelInfoPanel() {
-        return labelInfoPanel;
-    }
-
 
 
     //LISTENERS
@@ -172,8 +154,55 @@ public class HexEditorView extends JFrame {
         dataTable.getSelectionModel().addListSelectionListener(listener);
     }
 
+    public void addSearchListener(ActionListener listener) {
+        searchPanel.addSearchButtonListener(listener);
+    }
+
 
     //OTHER
+
+    // Метод для отображения инфо о количестве страниц и текущей страницы
+    public void setPageInfo(int currentPage, int totalPages) {
+        paginationPanel.getPageInfoLabel().setText(" / " + totalPages);
+        paginationPanel.getPageNumberField().setText(String.valueOf(currentPage));
+    }
+
+    // Метод для включения/выключения опций "со знаком/без знака"
+    public void setIntegerSignOptionsEnabled(boolean enabled) {
+        blockBytesMenuBar.setIntegerSignOptionsEnabled(enabled);
+
+    }
+
+    //Получение значения выделенной ячейки
+    public int getSelectedRow() {
+        return dataTable.getSelectedRow();
+    }
+
+    //Получение значения выделенной колонки
+    public int getSelectedColumn() {
+        return dataTable.getSelectedColumn();
+    }
+
+    public LabelInfoPanel getLabelInfoPanel() {
+        return labelInfoPanel;
+    }
+
+    public void selectTableRow(int row) {
+        dataTable.setRowSelectionInterval(row, row);
+    }
+
+    public void selectTableColumn(int column) {
+        dataTable.setColumnSelectionInterval(column, column);
+    }
+
+    public void scrollToVisible(int row, int column) {
+        dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
+    }
+
+    public void setSearchStatus(String statusText) {
+        searchPanel.setStatus(statusText);
+    }
+
 
     public void updateTableData() {
         ((HexTableModel) tableModel).fireTableDataChanged();

@@ -2,6 +2,7 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
+import model.HexSearchService;
 import view.HexEditorView;
 
 import javax.swing.*;
@@ -9,17 +10,20 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
 public class HexEditorController {
     private HexEditorView view;
     private HexEditorModel editorModel;
+    private HexSearchService searchService;
 
 
-    public HexEditorController(HexEditorView view, HexEditorModel editorModel) {
+    public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexSearchService searchService) {
         this.view = view;
         this.editorModel = editorModel;
+        this.searchService = searchService;
 
         view.addOpenFileListener(e -> openFile());
         view.addNextPageButtonListener(e -> nextPage());
@@ -28,6 +32,7 @@ public class HexEditorController {
         view.addItemsPerLineSpinnerListener(e -> changeItemsPerLine());
         view.addLinesPerPageSpinnerListener(e -> changeLinesPerPage());
 
+
         setupDataTypeListeners();
 
         //Слушатели для переключателей опций знаковости
@@ -35,6 +40,7 @@ public class HexEditorController {
         view.addUnsignedItemListener(e -> setSigned(false));
 
         setupTableSelectionListener();
+        setupSearchListeners();
     }
 
 
@@ -200,7 +206,7 @@ public class HexEditorController {
 
         if (selectedRow >= 0 && selectedColumn > 0) {
             try {
-                Object value = editorModel.getValueAtTableCoordinates(selectedRow, selectedColumn);
+                Object value = searchService.getValueAtTableCoordinates(selectedRow, selectedColumn);
 
                 if (value instanceof Byte) {
                     byte byteValue = (Byte) value;
@@ -219,4 +225,59 @@ public class HexEditorController {
         }
     }
 
+    private void setupSearchListeners() {
+        view.addSearchListener(e -> performSearch());
+        //еще два слушателя
+
+
+    }
+
+    private void performSearch() {
+        try {
+            String pattern = view.getSearchPattern().getText();
+            String mask = view.getSearchMask().getText();
+
+            if (pattern.isEmpty()) {
+                return;
+            }
+
+            List<Integer> results = searchService.searchBytes(pattern, mask);
+
+            if (results.isEmpty()) {
+                JOptionPane.showMessageDialog(view, "Ничего не найдено");
+            } else {
+                highlightPosition(searchService.getCurrentPosition());
+                updateSearchStatus();
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(view, "Ошибка поиска: " + ex.getMessage());
+        }
+    }
+
+    private void highlightPosition(int position) {
+        try {
+            int targetPage = searchService.getPageForPosition(position);
+            editorModel.displayPage(targetPage);
+            view.updateTableData();
+
+            int[] coordinates = searchService.getTableCoordinatesForPosition(position);
+            view.selectTableRow(coordinates[0]);
+            view.selectTableColumn(coordinates[1]);
+            view.scrollToVisible(coordinates[0], coordinates[1]);
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(view, "Ошибка перехода: " + e.getMessage());
+        }
+    }
+
+    private void updateSearchStatus() {
+        if (searchService.getResultsCount() > 0) {
+            view.setSearchStatus(
+                    String.format("Найдено: %d, Текущее: %d",
+                            searchService.getResultsCount(), searchService.getCurrentSearchIndex() + 1)
+            );
+        }
+    }
 }
+

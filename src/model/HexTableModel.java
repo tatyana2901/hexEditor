@@ -38,7 +38,7 @@ public class HexTableModel extends AbstractTableModel {
 
             if (columnIndex == 0) {
                 // Первый столбец - адрес
-                return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.pageSize() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
+                return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
             } else if (index >= 0 && index < hexEditorModel.getData().size()) {
                 // Данные из файла
                 return getFormattedRow(hexEditorModel.getType(), index);
