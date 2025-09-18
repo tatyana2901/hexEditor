@@ -210,7 +210,7 @@ public class HexEditorController {
 
                 if (value instanceof Byte) {
                     byte byteValue = (Byte) value;
-                    view.getLabelInfoPanel().setByteValue(byteValue);
+                    view.getLabelInfoPanel().setByteValue(byteValue); //КОНТРОЛЛЕР НЕ ДОЛЖЕН ЗНАТЬ О labelInfoPanel - заменить
                 } else {
                     view.getLabelInfoPanel().clear();
                 }
@@ -241,12 +241,12 @@ public class HexEditorController {
                 return;
             }
 
-            List<Integer> results = searchService.searchBytes(pattern, mask);
+            Map<Integer,Integer> results = searchService.searchBytes(pattern, mask);
 
             if (results.isEmpty()) {
                 JOptionPane.showMessageDialog(view, "Ничего не найдено");
             } else {
-                highlightPosition(searchService.getCurrentPosition());
+                highlightSearchResult(searchService.getCurrentPosition());
                 updateSearchStatus();
             }
 
@@ -255,22 +255,37 @@ public class HexEditorController {
         }
     }
 
-    private void highlightPosition(int position) {
+    private void highlightSearchResult(int position) {
+
         try {
             int targetPage = searchService.getPageForPosition(position);
             editorModel.displayPage(targetPage);
             view.updateTableData();
 
-            int[] coordinates = searchService.getTableCoordinatesForPosition(position);
-            view.selectTableRow(coordinates[0]);
-            view.selectTableColumn(coordinates[1]);
-            view.scrollToVisible(coordinates[0], coordinates[1]);
+            int startPos = searchService.getCurrentSearchIndex();
+            int length = searchService.getCurrentSearchResultLength(); //как определить длину текущего найденного индекса
 
+            if (startPos >= 0 && length > 0) {
+                highlightByteRange(startPos, length);
+            }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(view, "Ошибка перехода: " + e.getMessage());
         }
     }
 
+    private void highlightByteRange(int startPosition, int length) {
+     //   view.clearSelection();
+
+        for (int i = 0; i < length; i++) {
+            int currentPos = startPosition + i;
+            int[] coords = searchService.getTableCoordinatesForPosition(currentPos);
+            view.addToSelection(coords[0], coords[1]);
+
+            if (i == 0) {
+                view.scrollToVisible(coords[0], coords[1]);
+            }
+        }
+    }
     private void updateSearchStatus() {
         if (searchService.getResultsCount() > 0) {
             view.setSearchStatus(

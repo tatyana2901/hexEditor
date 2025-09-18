@@ -53,6 +53,8 @@ public class HexEditorView extends JFrame {
         panel.add(labelInfoPanel);
         panel.add(searchPanel);
 
+        setupTableSelection();
+
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
@@ -187,7 +189,7 @@ public class HexEditorView extends JFrame {
         return labelInfoPanel;
     }
 
-    public void selectTableRow(int row) {
+   /* public void selectTableRow(int row) {
         dataTable.setRowSelectionInterval(row, row);
     }
 
@@ -197,10 +199,40 @@ public class HexEditorView extends JFrame {
 
     public void scrollToVisible(int row, int column) {
         dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
+    }*/
+
+    public void selectTableCell(int row, int column) {
+        // Очищаем предыдущее выделение
+        dataTable.clearSelection();
+
+        // Устанавливаем выделение конкретной ячейки
+        dataTable.setRowSelectionInterval(row, row);
+        dataTable.setColumnSelectionInterval(column, column);
+
+        // Убеждаемся, что ячейка видима
+        scrollToVisible(row, column);
     }
+
+    public void addToSelection(int row, int column) {
+        // Добавляем ячейку к текущему выделению
+        dataTable.addRowSelectionInterval(row, row);
+        dataTable.addColumnSelectionInterval(column, column);
+    }
+
+    public void scrollToVisible(int row, int column) {
+        dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
+    }
+
 
     public void setSearchStatus(String statusText) {
         searchPanel.setStatus(statusText);
+    }
+
+    private void setupTableSelection() {
+        dataTable.setCellSelectionEnabled(true);  // ВКЛЮЧАЕМ выделение ячеек!
+      //  dataTable.setRowSelectionAllowed(false);  // отключаем выделение строк
+    //    dataTable.setColumnSelectionAllowed(false); // отключаем выделение колонок
+        dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // одна ячейка
     }
 
 

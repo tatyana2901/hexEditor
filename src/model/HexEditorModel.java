@@ -6,7 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HexEditorModel {
 
@@ -171,9 +173,8 @@ public class HexEditorModel {
     }
 
 
-
-    public List<Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
-        List<Integer> positions = new ArrayList<>();
+    public Map<Integer, Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
+        Map<Integer, Integer> positions = new HashMap<>();
 
         if (file == null) {
             throw new IllegalStateException("Файл не открыт");
@@ -205,16 +206,13 @@ public class HexEditorModel {
                 }
 
                 if (match) {
-                    positions.add((int) i);
+                    positions.put((int) i, searchPattern.length); //СЮДА КЛАСТЬ ИНДЕКС относительно файла???
                 }
             }
         }
 
         return positions;
     }
-
-
-
 
 
 }

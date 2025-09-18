@@ -1,19 +1,18 @@
 package model;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private List<Integer> searchResults; //список позиций найденных байтов в файле
-    private int currentSearchIndex; // индекс просматриваемого байта в данный момент
+    private Map<Integer, Integer> searchResults; //список позиций найденных байтов в файле (индекс-длина комбинации)
+    private int currentSearchIndex; // индекс просматриваемого байта в данный момент для отображения в результатах поиска
 
     public HexSearchService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
-        this.searchResults = new ArrayList<>();
-        this.currentSearchIndex = -1;
+        this.searchResults = new LinkedHashMap<>();
+        this.currentSearchIndex = -1; // номер просматриваемого найденного элемента. Например, 1 из 5 или 2 из 5
     }
 
     public int getResultsCount() {
@@ -56,7 +55,7 @@ public class HexSearchService {
     }
 
 
-    public List<Integer> searchBytes(String hexPattern, String hexMask) throws IOException {
+    public Map<Integer, Integer> searchBytes(String hexPattern, String hexMask) throws IOException {
         byte[] pattern = parseHexPattern(hexPattern);
 
         byte[] mask = hexMask.isEmpty() ? null : parseHexPattern(hexMask);
@@ -64,10 +63,10 @@ public class HexSearchService {
         searchResults = editorModel.findBytes(pattern, mask);
         currentSearchIndex = searchResults.isEmpty() ? -1 : 0;
 
-        return new ArrayList<>(searchResults); // возвращаем копию
+        return new HashMap<>(searchResults); // возвращаем копию
     }
 
-    public int getCurrentPosition() {
+    public int getCurrentSearchResultLength() {
         return currentSearchIndex >= 0 ? searchResults.get(currentSearchIndex) : -1;
     }
 
@@ -84,4 +83,6 @@ public class HexSearchService {
         int col = (localPosition % editorModel.getItemsPerLine()) + 1;
         return new int[]{row, col};
     }
+
+
 }
