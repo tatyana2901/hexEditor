@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -45,27 +44,21 @@ public class HexEditorController {
 
 
     private void openFile() {
-        JFileChooser fileChooser = view.getFileChooser();//получаем файл из view
 
-        int ret = fileChooser.showDialog(null, "Открыть файл");
-        if (ret == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-
+        File file = view.showOpenFileDialog();
+        if (file != null) {
             try {
                 editorModel.initializeModel(file);
                 editorModel.displayPage(1);
                 view.setPageInfo(1, (int) editorModel.getTotalPages());
-                view.getLabel().setText("Выбран файл: " + file.getName());
+                view.setFileInfo("Выбран файл: " + file.getName());
                 view.updateTableData(); // Уведомляем таблицу об изменении данных
             } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
                 JOptionPane.showMessageDialog(view, "Ошибка при чтении файла: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
         }
-
-
     }
 
-    //обавить обработку исключений выбрачываемых displaypage итд
     private void nextPage() {
         try {
             if (editorModel.getCurrentPageNumber() < editorModel.getTotalPages()) {
@@ -94,7 +87,7 @@ public class HexEditorController {
 
     private void loadPage() {
         try {
-            int inputPageNumber = Integer.parseInt(view.getPageNumber().getText());
+            int inputPageNumber = view.getPageNumberInput();
             if (inputPageNumber > editorModel.getTotalPages()) {
                 JOptionPane.showMessageDialog(view, "Введите номер страницы от 1 до " + editorModel.getTotalPages(), "Ошибка", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -210,18 +203,18 @@ public class HexEditorController {
 
                 if (value instanceof Byte) {
                     byte byteValue = (Byte) value;
-                    view.getLabelInfoPanel().setByteValue(byteValue); //КОНТРОЛЛЕР НЕ ДОЛЖЕН ЗНАТЬ О labelInfoPanel - заменить
+                    view.setByteLabelText(byteValue);
                 } else {
-                    view.getLabelInfoPanel().clear();
+                    view.clearByteLabelText();
                 }
 
             } catch (Exception ex) {
-                view.getLabelInfoPanel().clear();
+                view.clearByteLabelText();
                 JOptionPane.showMessageDialog(view, "Ошибка: " + ex.getMessage(),
                         "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            view.getLabelInfoPanel().clear();
+            view.clearByteLabelText();
         }
     }
 
@@ -241,12 +234,12 @@ public class HexEditorController {
                 return;
             }
 
-            Map<Integer,Integer> results = searchService.searchBytes(pattern, mask);
+            searchService.searchBytes(pattern, mask);
 
-            if (results.isEmpty()) {
+            if (searchService.getResultsCount() == 0) {
                 JOptionPane.showMessageDialog(view, "Ничего не найдено");
             } else {
-                highlightSearchResult(searchService.getCurrentPosition());
+                highlightSearchResult();
                 updateSearchStatus();
             }
 
@@ -255,37 +248,24 @@ public class HexEditorController {
         }
     }
 
-    private void highlightSearchResult(int position) {
+    private void highlightSearchResult() {
 
         try {
+            int position = searchService.getCurrentPosition();
             int targetPage = searchService.getPageForPosition(position);
             editorModel.displayPage(targetPage);
             view.updateTableData();
 
-            int startPos = searchService.getCurrentSearchIndex();
-            int length = searchService.getCurrentSearchResultLength(); //как определить длину текущего найденного индекса
 
-            if (startPos >= 0 && length > 0) {
-                highlightByteRange(startPos, length);
+            if (position >= 0) {
+                int[] startCoords = searchService.getTableCoordinatesForPosition(position);
+                view.selectTableCell(startCoords[0], startCoords[1]);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(view, "Ошибка перехода: " + e.getMessage());
         }
     }
 
-    private void highlightByteRange(int startPosition, int length) {
-     //   view.clearSelection();
-
-        for (int i = 0; i < length; i++) {
-            int currentPos = startPosition + i;
-            int[] coords = searchService.getTableCoordinatesForPosition(currentPos);
-            view.addToSelection(coords[0], coords[1]);
-
-            if (i == 0) {
-                view.scrollToVisible(coords[0], coords[1]);
-            }
-        }
-    }
     private void updateSearchStatus() {
         if (searchService.getResultsCount() > 0) {
             view.setSearchStatus(

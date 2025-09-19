@@ -9,6 +9,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 public class HexEditorView extends JFrame {
     private TableModel tableModel;
@@ -64,17 +65,13 @@ public class HexEditorView extends JFrame {
 
     //GETTERS
 
-    public JFileChooser getFileChooser() {
+   /* public JFileChooser getFileChooser() {
         return fileSelectionPanel.getFileChooser();
-    }
+    }*/
 
-    public JLabel getLabel() {
-        return fileSelectionPanel.getLabel();
-    }
-
-    public JTextField getPageNumber() {
+  /*  public JTextField getPageNumber() {
         return paginationPanel.getPageNumberField();
-    }
+    }*/
 
     public JSpinner getLinesPerPage() {
         return settingsPanel.getLinesPerPage();
@@ -169,6 +166,13 @@ public class HexEditorView extends JFrame {
         paginationPanel.getPageNumberField().setText(String.valueOf(currentPage));
     }
 
+    public File showOpenFileDialog() {
+        JFileChooser fileChooser = fileSelectionPanel.getFileChooser();
+        int ret = fileChooser.showDialog(this, "Открыть файл");
+        return (ret == JFileChooser.APPROVE_OPTION) ? fileChooser.getSelectedFile() : null;
+    }
+
+
     // Метод для включения/выключения опций "со знаком/без знака"
     public void setIntegerSignOptionsEnabled(boolean enabled) {
         blockBytesMenuBar.setIntegerSignOptionsEnabled(enabled);
@@ -185,21 +189,6 @@ public class HexEditorView extends JFrame {
         return dataTable.getSelectedColumn();
     }
 
-    public LabelInfoPanel getLabelInfoPanel() {
-        return labelInfoPanel;
-    }
-
-   /* public void selectTableRow(int row) {
-        dataTable.setRowSelectionInterval(row, row);
-    }
-
-    public void selectTableColumn(int column) {
-        dataTable.setColumnSelectionInterval(column, column);
-    }
-
-    public void scrollToVisible(int row, int column) {
-        dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
-    }*/
 
     public void selectTableCell(int row, int column) {
         // Очищаем предыдущее выделение
@@ -213,11 +202,6 @@ public class HexEditorView extends JFrame {
         scrollToVisible(row, column);
     }
 
-    public void addToSelection(int row, int column) {
-        // Добавляем ячейку к текущему выделению
-        dataTable.addRowSelectionInterval(row, row);
-        dataTable.addColumnSelectionInterval(column, column);
-    }
 
     public void scrollToVisible(int row, int column) {
         dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
@@ -229,11 +213,41 @@ public class HexEditorView extends JFrame {
     }
 
     private void setupTableSelection() {
-        dataTable.setCellSelectionEnabled(true);  // ВКЛЮЧАЕМ выделение ячеек!
-      //  dataTable.setRowSelectionAllowed(false);  // отключаем выделение строк
-    //    dataTable.setColumnSelectionAllowed(false); // отключаем выделение колонок
-        dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // одна ячейка
+        dataTable.setCellSelectionEnabled(true);
+        dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     }
+
+    public void setByteLabelText(byte value) {
+        labelInfoPanel.setByteValue(value);
+    }
+
+
+    public void clearByteLabelText() {
+        labelInfoPanel.clear();
+    }
+
+
+    public void setFileInfo(String info) {
+        fileSelectionPanel.getLabel().setText(info);
+    }
+
+    public int getPageNumberInput() {
+        return Integer.parseInt(paginationPanel.getPageNumberField().getText());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     public void updateTableData() {
@@ -244,5 +258,5 @@ public class HexEditorView extends JFrame {
         ((HexTableModel) tableModel).fireTableStructureChanged();
     }
 
-
 }
+

@@ -173,8 +173,8 @@ public class HexEditorModel {
     }
 
 
-    public Map<Integer, Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
-        Map<Integer, Integer> positions = new HashMap<>();
+    public List<Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
+        List<Integer> positions = new ArrayList<>();
 
         if (file == null) {
             throw new IllegalStateException("Файл не открыт");
@@ -206,7 +206,7 @@ public class HexEditorModel {
                 }
 
                 if (match) {
-                    positions.put((int) i, searchPattern.length); //СЮДА КЛАСТЬ ИНДЕКС относительно файла???
+                    positions.add((int) i); //i - индекс байта, с которого начинется совпадение начала совпадения
                 }
             }
         }

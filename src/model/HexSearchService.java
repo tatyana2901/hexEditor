@@ -6,12 +6,13 @@ import java.util.*;
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private Map<Integer, Integer> searchResults; //список позиций найденных байтов в файле (индекс-длина комбинации)
-    private int currentSearchIndex; // индекс просматриваемого байта в данный момент для отображения в результатах поиска
+    private List<Integer> searchResults; //список позиций найденных байтов в файле (индексов байта)
+    private int currentSearchIndex; // индекс просматриваемого байта в данный момент для отображения в результатах поиска: 1,2,3,4,5
+
 
     public HexSearchService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
-        this.searchResults = new LinkedHashMap<>();
+        this.searchResults = new ArrayList<>();
         this.currentSearchIndex = -1; // номер просматриваемого найденного элемента. Например, 1 из 5 или 2 из 5
     }
 
@@ -22,6 +23,11 @@ public class HexSearchService {
     public int getCurrentSearchIndex() {
         return currentSearchIndex;
     }
+
+    public int getCurrentPosition() {
+        return searchResults.get(currentSearchIndex);
+    }
+
 
     public Object getValueAtTableCoordinates(int row, int column) {
         if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
@@ -51,11 +57,12 @@ public class HexSearchService {
             result[i] = (byte) Integer.parseInt(byteStr, 16);
         }
 
+
         return result;
     }
 
 
-    public Map<Integer, Integer> searchBytes(String hexPattern, String hexMask) throws IOException {
+    public void searchBytes(String hexPattern, String hexMask) throws IOException {
         byte[] pattern = parseHexPattern(hexPattern);
 
         byte[] mask = hexMask.isEmpty() ? null : parseHexPattern(hexMask);
@@ -63,12 +70,8 @@ public class HexSearchService {
         searchResults = editorModel.findBytes(pattern, mask);
         currentSearchIndex = searchResults.isEmpty() ? -1 : 0;
 
-        return new HashMap<>(searchResults); // возвращаем копию
     }
 
-    public int getCurrentSearchResultLength() {
-        return currentSearchIndex >= 0 ? searchResults.get(currentSearchIndex) : -1;
-    }
 
     public int getPageForPosition(int position) {
         int itemsPerPage = editorModel.getItemsPerPage();
