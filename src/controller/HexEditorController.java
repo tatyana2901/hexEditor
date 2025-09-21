@@ -6,6 +6,7 @@ import model.HexSearchService;
 import view.HexEditorView;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class HexEditorController {
         view.addOpenFileListener(e -> openFile());
         view.addNextPageButtonListener(e -> nextPage());
         view.addPrevPageButtonListener(e -> prevPage());
-        view.addLoadPageButtonListener(e -> loadPage());
+        view.addLoadPageButtonListener(e -> goToInputNumberPage());
         view.addItemsPerLineSpinnerListener(e -> changeItemsPerLine());
         view.addLinesPerPageSpinnerListener(e -> changeLinesPerPage());
 
@@ -43,18 +44,26 @@ public class HexEditorController {
     }
 
 
+    private void displayPage(int pageNumber) throws IOException {
+
+        editorModel.loadPageData(pageNumber); //загрузить данные страницы
+        editorModel.setCurrentPageNumber(pageNumber); // поменять номер текущей страницы
+        view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages()); //обновить информацию о текущей странице
+        view.updateTableData();
+    }
+
+
     private void openFile() {
 
         File file = view.showOpenFileDialog();
         if (file != null) {
             try {
                 editorModel.initializeModel(file);
-                editorModel.displayPage(1);
-                view.setPageInfo(1, (int) editorModel.getTotalPages());
+                displayPage(1);
                 view.setFileInfo("Выбран файл: " + file.getName());
-                view.updateTableData(); // Уведомляем таблицу об изменении данных
+
             } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-                JOptionPane.showMessageDialog(view, "Ошибка при чтении файла: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                view.showErrorDialog("Ошибка при чтении файла: " + ex.getMessage(), "Ошибка");
             }
         }
     }
@@ -62,12 +71,10 @@ public class HexEditorController {
     private void nextPage() {
         try {
             if (editorModel.getCurrentPageNumber() < editorModel.getTotalPages()) {
-                editorModel.displayPage(editorModel.getCurrentPageNumber() + 1);
-                view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
-                view.updateTableData();
+                displayPage(editorModel.getCurrentPageNumber() + 1);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
     }
 
@@ -75,49 +82,45 @@ public class HexEditorController {
     private void prevPage() {
         try {
             if (editorModel.getCurrentPageNumber() > 1) {
-                editorModel.displayPage(editorModel.getCurrentPageNumber() - 1);
-                view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
-                view.updateTableData();
+                displayPage(editorModel.getCurrentPageNumber() - 1);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
     }
 
 
-    private void loadPage() {
+    private void goToInputNumberPage() {
         try {
             int inputPageNumber = view.getPageNumberInput();
             if (inputPageNumber > editorModel.getTotalPages()) {
-                JOptionPane.showMessageDialog(view, "Введите номер страницы от 1 до " + editorModel.getTotalPages(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                view.showErrorDialog("Введите номер страницы от 1 до " + editorModel.getTotalPages(), "Ошибка");
                 return;
             }
             if (inputPageNumber > 0 || inputPageNumber <= editorModel.getTotalPages()) {
-                editorModel.displayPage(inputPageNumber);
-                view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
-                view.updateTableData();
+                displayPage(inputPageNumber);
             }
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(view, "Неправильный формат номера страницы.", "Ошибка", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) { //так можно делать?
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
-        }
 
+            view.showErrorDialog("Неправильный формат номера страницы.", "Ошибка");
+
+        } catch (IllegalArgumentException | IllegalStateException | IOException ex) { //так можно делать?
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
+        }
 
     }
 
 
     private void changeItemsPerLine() {
         try {
-            int itemsPerLine = (int) view.getItemsPerLine().getValue();
+            int itemsPerLine = view.getItemsPerLineInput();
             editorModel.setItemsPerLine(itemsPerLine);
-            editorModel.displayPage(1);
-            view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
+            displayPage(1);
             view.updateTableStructure();
         } catch (ClassCastException e) {
-            JOptionPane.showMessageDialog(view, "Введите целое число в качестве количества элементов в строке.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog("Введите целое число в качестве количества элементов в строке.", "Ошибка");
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
 
     }
@@ -125,40 +128,26 @@ public class HexEditorController {
 
     private void changeLinesPerPage() {
         try {
-            int linesPerPage = (int) view.getLinesPerPage().getValue();
+            int linesPerPage = view.getLinesPerPageInput();
             editorModel.setLinesPerPage(linesPerPage);
-            editorModel.displayPage(1);
-            view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
-            view.updateTableData();
+            displayPage(1);
+
         } catch (ClassCastException e) {
-            JOptionPane.showMessageDialog(view, "Введите целое число в качестве количества строк.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog("Введите целое число в качестве количества строк.", "Ошибка");
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
     }
 
     private void setupDataTypeListeners() {
-
-        Map<JMenuItem, DataType> typeMap = new HashMap<JMenuItem, DataType>() {{
-
-            put(view.getByteMenuItem(), DataType.BYTE);
-            put(view.getShortMenuItem(), DataType.SHORT);
-            put(view.getIntMenuItem(), DataType.INTEGER);
-            put(view.getLongMenuItem(), DataType.LONG);
-            put(view.getDoubleMenuItem(), DataType.DOUBLE);
-            put(view.getFloatMenuItem(), DataType.FLOAT);
-
-        }};
-
-
-        ActionListener typeListener = e -> {
-            DataType type = typeMap.get((JMenuItem) e.getSource());
-            if (type != null) {
-                setDataType(type);
-            }
-        };
-
-        typeMap.keySet().forEach(item -> item.addActionListener(typeListener));
+        view.setupDataTypeListeners(
+                e -> setDataType(DataType.BYTE),
+                e -> setDataType(DataType.SHORT),
+                e -> setDataType(DataType.INTEGER),
+                e -> setDataType(DataType.LONG),
+                e -> setDataType(DataType.FLOAT),
+                e -> setDataType(DataType.DOUBLE)
+        );
     }
 
     private void setDataType(DataType dataType) {
@@ -167,11 +156,10 @@ public class HexEditorController {
             // Включаем/выключаем опции "со знаком/без знака" в зависимости от типа данных
             boolean isIntegerType = (dataType == DataType.SHORT || dataType == DataType.INTEGER || dataType == DataType.LONG);
             view.setIntegerSignOptionsEnabled(isIntegerType);
-            editorModel.displayPage(1);
-            view.setPageInfo(editorModel.getCurrentPageNumber(), (int) editorModel.getTotalPages());
-            view.updateTableData();
+            displayPage(1);
+
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
     }
 
@@ -180,7 +168,7 @@ public class HexEditorController {
             editorModel.setSigned(signed);
             view.updateTableData();
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            view.showErrorDialog(ex.getMessage(), "Ошибка");
         }
     }
 
@@ -210,8 +198,7 @@ public class HexEditorController {
 
             } catch (Exception ex) {
                 view.clearByteLabelText();
-                JOptionPane.showMessageDialog(view, "Ошибка: " + ex.getMessage(),
-                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+                view.showErrorDialog(ex.getMessage(), "Ошибка");
             }
         } else {
             view.clearByteLabelText();
@@ -220,51 +207,78 @@ public class HexEditorController {
 
     private void setupSearchListeners() {
         view.addSearchListener(e -> performSearch());
-        //еще два слушателя
-
-
+        view.addNextSearchResultListener(e -> getNextSearchItemResult());
+        view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
     }
 
     private void performSearch() {
         try {
-            String pattern = view.getSearchPattern().getText();
-            String mask = view.getSearchMask().getText();
+
+            if (editorModel.getType() != DataType.BYTE) {
+
+                view.showErrorDialog("Поиск байт доступен только в режиме отображения BYTE", "Ошибка");
+                return;
+            }
+            String pattern = view.getSearchPattern();
+            String mask = view.getSearchMask();
 
             if (pattern.isEmpty()) {
                 return;
             }
 
             searchService.searchBytes(pattern, mask);
-
             if (searchService.getResultsCount() == 0) {
-                JOptionPane.showMessageDialog(view, "Ничего не найдено");
+                view.showInfoDialog("Ничего не найдено", "NoResult");
             } else {
                 highlightSearchResult();
                 updateSearchStatus();
             }
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Ошибка поиска: " + ex.getMessage());
+            view.showErrorDialog("Ошибка поиска: " + ex.getMessage(), "Ошибка");
         }
     }
 
     private void highlightSearchResult() {
-
         try {
             int position = searchService.getCurrentPosition();
             int targetPage = searchService.getPageForPosition(position);
-            editorModel.displayPage(targetPage);
-            view.updateTableData();
-
-
+            displayPage(targetPage);
             if (position >= 0) {
                 int[] startCoords = searchService.getTableCoordinatesForPosition(position);
                 view.selectTableCell(startCoords[0], startCoords[1]);
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(view, "Ошибка перехода: " + e.getMessage());
+            view.showErrorDialog("Ошибка перехода: " + e.getMessage(), "Ошибка");
+
         }
     }
+
+    private void getNextSearchItemResult() {
+
+        try {
+            searchService.increaseCurrentSearchIndex();
+            displaySearchResultOnPage();
+        } catch (Exception e) {
+            view.showErrorDialog("Ошибка перехода к следующему результату поиска: " + e.getMessage(), "Ошибка");
+        }
+    }
+
+    private void getPrevSearchItemResult() {
+
+        try {
+            searchService.decreaseCurrentSearchIndex();
+            displaySearchResultOnPage();
+        } catch (Exception e) {
+            view.showErrorDialog("Ошибка перехода к предыдущему результату поиска:  " + e.getMessage(), "Ошибка");
+        }
+    }
+
+    public void displaySearchResultOnPage() {
+        highlightSearchResult();
+        updateSearchStatus();
+    }
+
 
     private void updateSearchStatus() {
         if (searchService.getResultsCount() > 0) {

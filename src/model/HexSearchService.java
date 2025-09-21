@@ -28,6 +28,18 @@ public class HexSearchService {
         return searchResults.get(currentSearchIndex);
     }
 
+    public void increaseCurrentSearchIndex() {
+
+        if (currentSearchIndex != searchResults.size() - 1)
+            currentSearchIndex++;
+    }
+
+    public void decreaseCurrentSearchIndex() {
+
+        if (currentSearchIndex > 0)
+            currentSearchIndex--;
+    }
+
 
     public Object getValueAtTableCoordinates(int row, int column) {
         if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");

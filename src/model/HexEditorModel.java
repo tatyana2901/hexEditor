@@ -75,6 +75,11 @@ public class HexEditorModel {
         calculateTotalPages(); //пересчитываем количество страниц
     }
 
+
+    public void setCurrentPageNumber(int currentPageNumber) {
+        this.currentPageNumber = currentPageNumber;
+    }
+
     public long getFileSize() {
         return fileSize;
     }
@@ -139,7 +144,7 @@ public class HexEditorModel {
         return objectPageData;
     }
 
-    public void displayPage(int pageNumber) throws IOException {
+    public void loadPageData(int pageNumber) throws IOException {
 
         if (pageNumber < 1 || pageNumber > totalPages) {
             throw new IllegalArgumentException("Задан некорректный номер страницы!");
@@ -153,11 +158,11 @@ public class HexEditorModel {
             data = readPageData(pageNumber); // читаем страницу из файла
         }
 
-        currentPageNumber = pageNumber;
     }
 
-    public void initializeModel(File file) {
 
+
+    public void initializeModel(File file) {
 
         if (file == null) {
             throw new IllegalArgumentException("Файл не может быть null.");

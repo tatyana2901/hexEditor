@@ -23,15 +23,15 @@ public class LabelInfoPanel extends JPanel {
     }
 
     public void setByteValue(byte byteValue) {
-        decimalSignedLabel.setText(String.valueOf((int) byteValue)); // Signed //ИСПОЛЬЗОВАТЬ ГОТОВЫЕ ФУНКЦИИ tounsigned
-        decimalUnsignedLabel.setText(String.valueOf((byteValue & 0xFF))); // Unsigned
+        decimalSignedLabel.setText(String.valueOf((int) byteValue)); // Signed
+        decimalUnsignedLabel.setText(String.valueOf((Byte.toUnsignedInt(byteValue)))); // Unsigned
+
     }
 
     public void clear() {
         decimalSignedLabel.setText(" ");
         decimalUnsignedLabel.setText(" ");
     }
-
 
 
 }

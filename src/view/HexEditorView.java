@@ -63,56 +63,6 @@ public class HexEditorView extends JFrame {
 
     }
 
-    //GETTERS
-
-   /* public JFileChooser getFileChooser() {
-        return fileSelectionPanel.getFileChooser();
-    }*/
-
-  /*  public JTextField getPageNumber() {
-        return paginationPanel.getPageNumberField();
-    }*/
-
-    public JSpinner getLinesPerPage() {
-        return settingsPanel.getLinesPerPage();
-    }
-
-    public JSpinner getItemsPerLine() {
-        return settingsPanel.getItemsPerLine();
-    }
-
-    public JMenuItem getByteMenuItem() {
-        return blockBytesMenuBar.getByteItem();
-    }
-
-    public JMenuItem getShortMenuItem() {
-        return blockBytesMenuBar.getShortItem();
-    }
-
-    public JMenuItem getIntMenuItem() {
-        return blockBytesMenuBar.getIntItem();
-    }
-
-    public JMenuItem getLongMenuItem() {
-        return blockBytesMenuBar.getLongItem();
-    }
-
-    public JMenuItem getFloatMenuItem() {
-        return blockBytesMenuBar.getFloatItem();
-    }
-
-    public JMenuItem getDoubleMenuItem() {
-        return blockBytesMenuBar.getDoubleItem();
-    }
-
-    public JTextField getSearchPattern() {
-        return searchPanel.getSearchField();
-    }
-
-    public JTextField getSearchMask() {
-        return searchPanel.getMaskField();
-    }
-
 
     //LISTENERS
 
@@ -157,6 +107,28 @@ public class HexEditorView extends JFrame {
         searchPanel.addSearchButtonListener(listener);
     }
 
+    public void addNextSearchResultListener(ActionListener listener) {
+        searchPanel.addNextListener(listener);
+    }
+
+    public void addPrevSearchResultListener(ActionListener listener) {
+        searchPanel.addPrevListener(listener);
+    }
+
+
+    public void setupDataTypeListeners(ActionListener byteListener,
+                                       ActionListener shortListener,
+                                       ActionListener intListener,
+                                       ActionListener longListener,
+                                       ActionListener floatListener,
+                                       ActionListener doubleListener) {
+        blockBytesMenuBar.getByteItem().addActionListener(byteListener);
+        blockBytesMenuBar.getShortItem().addActionListener(shortListener);
+        blockBytesMenuBar.getIntItem().addActionListener(intListener);
+        blockBytesMenuBar.getLongItem().addActionListener(longListener);
+        blockBytesMenuBar.getFloatItem().addActionListener(floatListener);
+        blockBytesMenuBar.getDoubleItem().addActionListener(doubleListener);
+    }
 
     //OTHER
 
@@ -235,20 +207,35 @@ public class HexEditorView extends JFrame {
         return Integer.parseInt(paginationPanel.getPageNumberField().getText());
     }
 
+    public int getLinesPerPageInput() {
+        return (int) settingsPanel.getLinesPerPage().getValue();
+    }
+
+    public int getItemsPerLineInput() {
+        return (int) settingsPanel.getItemsPerLine().getValue();
+    }
 
 
+    public String getSearchPattern() {
+        return searchPanel.getSearchField().getText();
+    }
+
+    public String getSearchMask() {
+        return searchPanel.getMaskField().getText();
+    }
+
+    // МЕТОДЫ БРАБОТКИ ОШИБОК
+
+    public void showErrorDialog(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void showInfoDialog(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
 
 
-
-
-
-
-
-
-
-
-
-
+    //ПЕРЕРИСОВКА ТАБЛИЦЫ
 
     public void updateTableData() {
         ((HexTableModel) tableModel).fireTableDataChanged();
@@ -257,6 +244,7 @@ public class HexEditorView extends JFrame {
     public void updateTableStructure() {
         ((HexTableModel) tableModel).fireTableStructureChanged();
     }
+
 
 }
 
