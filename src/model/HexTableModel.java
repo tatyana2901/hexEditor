@@ -17,10 +17,6 @@ public class HexTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        // Количество строк в таблице
-        //а если тут сослаться на количество строк в editormodel - будет то же самое или нет?
-
-
         return (int) Math.ceil((double) hexEditorModel.getData().size() / hexEditorModel.getItemsPerLine());
     }
 

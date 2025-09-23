@@ -5,10 +5,9 @@ import model.cache.PageCache;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 
 public class HexEditorModel {
 
@@ -161,7 +160,6 @@ public class HexEditorModel {
     }
 
 
-
     public void initializeModel(File file) {
 
         if (file == null) {
@@ -217,6 +215,111 @@ public class HexEditorModel {
         }
 
         return positions;
+    }
+
+    public int[] getSelectedBytesRange(int[] selectedRows, int[] selectedColumns) {
+        if (selectedRows == null || selectedColumns == null ||
+                selectedRows.length == 0 || selectedColumns.length == 0) {
+            throw new IllegalArgumentException("Выделите байты для обнуления!");
+        }
+
+        // Сортируем индексы для корректного определения диапазона
+        int[] sortedRows = selectedRows.clone();
+        int[] sortedColumns = selectedColumns.clone();
+        Arrays.sort(sortedRows);
+        Arrays.sort(sortedColumns);
+
+        int minRow = sortedRows[0];
+        int maxRow = sortedRows[sortedRows.length - 1];
+        int minCol = sortedColumns[0];
+        int maxCol = sortedColumns[sortedColumns.length - 1];
+
+        // Проверяем, что выделены только столбцы с данными (не адрес)
+        if (minCol == 0) {
+            minCol = 1; // Первый столбец - адрес, его пропускаем
+            if (minCol > maxCol) {
+                throw new IllegalArgumentException("Выделите байты для обнуления!");
+            }
+        }
+
+        // Преобразуем координаты таблицы в позиции в файле
+        int itemsPerLine = getItemsPerLine();
+        int itemsPerPage = getItemsPerPage();
+        int pageOffset = (currentPageNumber - 1) * itemsPerPage;
+
+        // Начальная позиция в файле
+        int startPos = minRow * itemsPerLine + (minCol - 1) + pageOffset;
+
+        // Конечная позиция в файле
+        int endPos = maxRow * itemsPerLine + (maxCol - 1) + pageOffset;
+
+        // Длина выделенного блока
+        int length = (endPos - startPos) + 1;
+
+        // Проверяем, что позиции в пределах файла
+        if (startPos >= fileSize) {
+            throw new IllegalArgumentException("ыход позиции за границу файла.");
+        }
+
+        // Корректируем длину, если выделение выходит за пределы файла
+        if (startPos + length > fileSize) {
+            length = (int) (fileSize - startPos);
+        }
+
+        return new int[]{startPos, length};
+    }
+
+
+    //РАЗБИТЬ МЕТОД!!!
+    public void zeroOutBytes(int startPosition, int length) throws IOException {
+        if (type != DataType.BYTE) {
+            throw new IllegalStateException("Редактирование разрешено только для типа BYTE");
+        }
+        if (file == null) {
+            throw new IllegalStateException("Файл не открыт");
+        }
+        if (startPosition < 0 || length <= 0 || startPosition + length > fileSize) {
+            throw new IllegalArgumentException("Некорректная позиция или длина");
+        }
+
+        // Создаем временный файл для безопасной записи
+        File tempFile = new File(file.getParent(), "temp_" + file.getName());
+
+        try (RandomAccessFile sourceRaf = new RandomAccessFile(file, "r");
+             RandomAccessFile tempRaf = new RandomAccessFile(tempFile, "rw")) {
+
+            // 1. Копируем данные ДО обнуляемого блока
+            if (startPosition > 0) {
+                byte[] beforeBuffer = new byte[startPosition];
+                sourceRaf.seek(0);
+                sourceRaf.readFully(beforeBuffer);
+                tempRaf.write(beforeBuffer);
+            }
+
+            // 2. Записываем нули вместо удаляемого блока
+            byte[] zeros = new byte[length];
+            tempRaf.write(zeros);
+
+            // 3. Пропускаем обнуляемый блок в исходном файле
+            sourceRaf.seek(startPosition + length);
+
+            // 4. Копируем данные ПОСЛЕ обнуляемого блока
+            long bytesAfter = fileSize - (startPosition + length);
+            if (bytesAfter > 0) {
+                byte[] afterBuffer = new byte[(int) bytesAfter];
+                sourceRaf.readFully(afterBuffer);
+                tempRaf.write(afterBuffer);
+            }
+        }
+
+        // Заменяем оригинальный файл
+        File backupFile = new File(file.getParent(), file.getName() + ".backup");
+        Files.copy(file.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        tempFile.delete();
+
+        // Обновляем размер файла в модели
+        this.fileSize = file.length();
     }
 
 

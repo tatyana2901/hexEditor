@@ -19,12 +19,14 @@ public class HexEditorView extends JFrame {
     private BlockBytesMenuBar blockBytesMenuBar;
     private LabelInfoPanel labelInfoPanel;
     private SearchPanel searchPanel;
+    private EditPanel editPanel;
+    private TableContextMenu tableContextMenu;
     private JTable dataTable;
 
     //ЗАМЕНИТЬ НА ИНТЕРФЕЙСЫ????
     public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
-                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel) {
+                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
         super("HexEditor");
 
         this.tableModel = tableModel;
@@ -34,6 +36,8 @@ public class HexEditorView extends JFrame {
         this.blockBytesMenuBar = blockBytesMenuBar;
         this.labelInfoPanel = labelInfoPanel;
         this.searchPanel = searchPanel;
+        this.editPanel = editPanel;
+        this.tableContextMenu = new TableContextMenu();
         this.dataTable = new JTable(tableModel);
 
         JPanel panel = new JPanel();
@@ -53,7 +57,9 @@ public class HexEditorView extends JFrame {
         setJMenuBar(blockBytesMenuBar);
         panel.add(labelInfoPanel);
         panel.add(searchPanel);
+        panel.add(editPanel);
 
+        setupTableContextMenu();
         setupTableSelection();
 
         pack();
@@ -130,6 +136,22 @@ public class HexEditorView extends JFrame {
         blockBytesMenuBar.getDoubleItem().addActionListener(doubleListener);
     }
 
+    public void addEnableEditListener(ActionListener listener) {
+        editPanel.addEnableEditListener(listener);
+    }
+
+    public void addContextDeleteWithShiftListener(ActionListener listener) {
+        tableContextMenu.addDeleteWithShiftListener(listener);
+    }
+
+    public void addContextDeleteWithZeroListener(ActionListener listener) {
+        tableContextMenu.addDeleteWithZeroListener(listener);
+    }
+
+    public void setContextMenuEnabled(boolean enabled) {
+        tableContextMenu.setMenuEnabled(enabled);
+    }
+
     //OTHER
 
     // Метод для отображения инфо о количестве страниц и текущей страницы
@@ -161,10 +183,21 @@ public class HexEditorView extends JFrame {
         return dataTable.getSelectedColumn();
     }
 
+    public int[] getSelectedRows() {
+        return dataTable.getSelectedRows();
+    }
+
+    public int[] getSelectedColumns() {
+        return dataTable.getSelectedColumns();
+    }
+
+    public void clearSelection() {
+        dataTable.clearSelection();
+    }
 
     public void selectTableCell(int row, int column) {
         // Очищаем предыдущее выделение
-        dataTable.clearSelection();
+        clearSelection();
 
         // Устанавливаем выделение конкретной ячейки
         dataTable.setRowSelectionInterval(row, row);
@@ -182,6 +215,39 @@ public class HexEditorView extends JFrame {
 
     public void setSearchStatus(String statusText) {
         searchPanel.setStatus(statusText);
+    }
+
+
+    public boolean isEditMode() {
+        return editPanel.isEditMode();
+    }
+
+    public void setEditMode(boolean enabled) {
+        editPanel.setEditMode(enabled);
+    }
+
+    private void setupTableContextMenu() {
+        dataTable.setComponentPopupMenu(tableContextMenu.getContextMenu());
+
+        // Слушатель для показа меню только в режиме редактирования
+        dataTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                showContextMenuIfAllowed(e);
+            }
+
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                showContextMenuIfAllowed(e);
+            }
+
+            private void showContextMenuIfAllowed(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger() && isEditMode() &&
+                        dataTable.getSelectedRow() >= 0 && dataTable.getSelectedColumn() > 0) {
+                    tableContextMenu.getContextMenu().show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
     }
 
     private void setupTableSelection() {
@@ -224,7 +290,8 @@ public class HexEditorView extends JFrame {
         return searchPanel.getMaskField().getText();
     }
 
-    // МЕТОДЫ БРАБОТКИ ОШИБОК
+
+    // Выпадающие окна
 
     public void showErrorDialog(String message, String title) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
@@ -232,6 +299,23 @@ public class HexEditorView extends JFrame {
 
     public void showInfoDialog(String message, String title) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public int showConfirmDeleteWithZeroDialog(int startPosition, int count, int selectedCount) {
+        return
+                JOptionPane.showConfirmDialog(
+                        this,
+                        String.format("Обнулить выделенные байты?\n\n" +
+                                        "Позиция: %d\n" +
+                                        "Количество: %d байт\n" +
+                                        "Выделено: %d ячеек\n\n" +
+                                        "Это действие нельзя отменить. Будет создана резервная копия файла.",
+                                startPosition, count, selectedCount),
+                        "Подтверждение обнуления",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
     }
 
 

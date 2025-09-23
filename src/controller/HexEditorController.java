@@ -3,15 +3,12 @@ package controller;
 import model.DataType;
 import model.HexEditorModel;
 import model.HexSearchService;
+import model.cache.PageCache;
 import view.HexEditorView;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class HexEditorController {
@@ -41,6 +38,92 @@ public class HexEditorController {
 
         setupTableSelectionListener();
         setupSearchListeners();
+
+        view.addEnableEditListener(e -> activateEditMode());
+        view.addContextDeleteWithShiftListener(e -> deleteSelectedBytesWithShift());
+        view.addContextDeleteWithZeroListener(e -> deleteSelectedBytesWithZero());
+    }
+
+    private void activateEditMode() {
+        boolean newEditMode = !view.isEditMode();
+
+        // Проверяем, что тип данных BYTE
+        if (newEditMode && editorModel.getType() != DataType.BYTE) {
+            view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
+            return;
+        }
+
+        view.setEditMode(newEditMode);
+        view.setContextMenuEnabled(newEditMode);
+    }
+
+    private void deleteSelectedBytesWithShift() {
+        // Реализация удаления со сдвигом
+    }
+
+    private void deleteSelectedBytesWithZero() {
+
+        try {
+            // 1. Проверяем условия
+            if (!view.isEditMode()) {
+                view.showErrorDialog("Включите режим редактирования", "Ошибка");
+                return;
+            }
+
+            if (editorModel.getType() != DataType.BYTE) {
+                view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
+                return;
+            }
+
+            if (editorModel.getFile() == null) {
+                view.showErrorDialog("Файл не открыт", "Ошибка");
+                return;
+            }
+
+            // 2. Получаем выделение из view
+            int[] selectedRows = view.getSelectedRows();
+            int[] selectedColumns = view.getSelectedColumns();
+
+            // 3. Получаем диапазон из модели
+            int[] selection = editorModel.getSelectedBytesRange(
+                    selectedRows, selectedColumns);
+
+            int startPosition = selection[0];
+            int length = selection[1];
+
+            // 4. Подтверждение действия
+            int confirm = view.showConfirmDeleteWithZeroDialog(startPosition, length, selectedRows.length * selectedColumns.length);
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            // 5. Выполняем обнуление
+            editorModel.zeroOutBytes(startPosition, length);
+
+            // 6. Обновляем отображение
+            PageCache.getCache().remove(editorModel.getCurrentPageNumber());
+            displayPage(editorModel.getCurrentPageNumber());
+
+            // 7. Снимаем выделение
+            view.clearSelection();
+
+            // 8. Уведомляем пользователя
+            view.showInfoDialog(
+                    String.format("Байты успешно обнулены\nПозиция: %d, Количество: %d байт",
+                            startPosition, length),
+                    "Успех"
+            );
+
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
+        } catch (IOException ex) {
+            view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
+            ex.printStackTrace();
+        } catch (Exception ex) {
+            view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
+            ex.printStackTrace();
+        }
+
     }
 
 

@@ -20,8 +20,11 @@ public class Main {
         LabelInfoPanel labelInfoPanel = new LabelInfoPanel();
         SearchPanel searchPanel = new SearchPanel();
         HexSearchService searchService = new HexSearchService(editorModel);
+        EditPanel editPanel = new EditPanel();
+        TableContextMenu tableContextMenu = new TableContextMenu();
 
-        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel, blockBytesMenuBar, labelInfoPanel, searchPanel);
+        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel,
+                blockBytesMenuBar, labelInfoPanel, searchPanel, editPanel, tableContextMenu);
 
         new HexEditorController(view, editorModel, searchService);
 
