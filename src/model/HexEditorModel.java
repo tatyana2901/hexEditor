@@ -20,6 +20,7 @@ public class HexEditorModel {
     private long fileSize;
     private long totalPages;
     private File file;
+    private boolean isFileACopy = false;
     private boolean signed = true; // по умолчанию отображение со знаком
     private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
 
@@ -270,8 +271,10 @@ public class HexEditorModel {
     }
 
 
+
     //РАЗБИТЬ МЕТОД!!!
     public void zeroOutBytes(int startPosition, int length) throws IOException {
+
         if (type != DataType.BYTE) {
             throw new IllegalStateException("Редактирование разрешено только для типа BYTE");
         }
@@ -282,23 +285,23 @@ public class HexEditorModel {
             throw new IllegalArgumentException("Некорректная позиция или длина");
         }
 
-        // Создаем временный файл для безопасной записи
-        File tempFile = new File(file.getParent(), "temp_" + file.getName());
+        // Создаем новый файл для изменений
+        File editedFile = new File(file.getParent(), "edited_" + file.getName());
 
         try (RandomAccessFile sourceRaf = new RandomAccessFile(file, "r");
-             RandomAccessFile tempRaf = new RandomAccessFile(tempFile, "rw")) {
+             RandomAccessFile targetRaf = new RandomAccessFile(editedFile, "rw")) {
 
             // 1. Копируем данные ДО обнуляемого блока
             if (startPosition > 0) {
                 byte[] beforeBuffer = new byte[startPosition];
                 sourceRaf.seek(0);
                 sourceRaf.readFully(beforeBuffer);
-                tempRaf.write(beforeBuffer);
+                targetRaf.write(beforeBuffer);
             }
 
             // 2. Записываем нули вместо удаляемого блока
             byte[] zeros = new byte[length];
-            tempRaf.write(zeros);
+            targetRaf.write(zeros);
 
             // 3. Пропускаем обнуляемый блок в исходном файле
             sourceRaf.seek(startPosition + length);
@@ -308,19 +311,21 @@ public class HexEditorModel {
             if (bytesAfter > 0) {
                 byte[] afterBuffer = new byte[(int) bytesAfter];
                 sourceRaf.readFully(afterBuffer);
-                tempRaf.write(afterBuffer);
+                targetRaf.write(afterBuffer);
             }
         }
 
-        // Заменяем оригинальный файл
-        File backupFile = new File(file.getParent(), file.getName() + ".backup");
-        Files.copy(file.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        Files.copy(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        tempFile.delete();
+        if (isFileACopy) {
 
+            this.file.delete();
+        }
+
+        this.file = editedFile;
+        this.isFileACopy = true;
         // Обновляем размер файла в модели
         this.fileSize = file.length();
     }
+
 
 
 }
