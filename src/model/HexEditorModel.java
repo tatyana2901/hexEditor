@@ -23,7 +23,7 @@ public class HexEditorModel {
     private boolean isFileACopy = false;
     private boolean signed = true; // по умолчанию отображение со знаком
     private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
-
+    private File editedFile = null;
 
     public HexEditorModel() {
         this.data = new ArrayList<>();
@@ -270,9 +270,6 @@ public class HexEditorModel {
         return new int[]{startPos, length};
     }
 
-
-
-    //РАЗБИТЬ МЕТОД!!!
     public void zeroOutBytes(int startPosition, int length) throws IOException {
 
         if (type != DataType.BYTE) {
@@ -285,11 +282,19 @@ public class HexEditorModel {
             throw new IllegalArgumentException("Некорректная позиция или длина");
         }
 
-        // Создаем новый файл для изменений
-        File editedFile = new File(file.getParent(), "edited_" + file.getName());
+        // Создаем editedFile только если он еще не создан
+        if (editedFile == null) {
+            editedFile = new File(file.getParent(), "edited_" + file.getName());
+            if (editedFile.exists()) {
+                editedFile.delete();
+            }
+            System.out.println(editedFile);
+        }
+
+        File tempFile = new File(file.getParent(), "temp_" + file.getName());
 
         try (RandomAccessFile sourceRaf = new RandomAccessFile(file, "r");
-             RandomAccessFile targetRaf = new RandomAccessFile(editedFile, "rw")) {
+             RandomAccessFile targetRaf = new RandomAccessFile(tempFile, "rw")) {
 
             // 1. Копируем данные ДО обнуляемого блока
             if (startPosition > 0) {
@@ -316,16 +321,16 @@ public class HexEditorModel {
         }
 
         if (isFileACopy) {
-
             this.file.delete();
         }
 
+        tempFile.renameTo(editedFile);
         this.file = editedFile;
         this.isFileACopy = true;
+
         // Обновляем размер файла в модели
         this.fileSize = file.length();
     }
-
 
 
 }
