@@ -288,7 +288,7 @@ public class HexEditorModel {
             if (editedFile.exists()) {
                 editedFile.delete();
             }
-            System.out.println(editedFile);
+
         }
 
         File tempFile = new File(file.getParent(), "temp_" + file.getName());
@@ -332,5 +332,71 @@ public class HexEditorModel {
         this.fileSize = file.length();
     }
 
+    public void removeBytes(int startPosition, int length) throws IOException {
 
+        if (type != DataType.BYTE) {
+            throw new IllegalStateException("Редактирование разрешено только для типа BYTE");
+        }
+        if (file == null) {
+            throw new IllegalStateException("Файл не открыт");
+        }
+        if (startPosition < 0 || length <= 0 || startPosition + length > fileSize) {
+            throw new IllegalArgumentException("Некорректная позиция или длина");
+        }
+
+        // Создаем editedFile только если он еще не создан
+        if (editedFile == null) {
+            editedFile = new File(file.getParent(), "edited_" + file.getName());
+            if (editedFile.exists()) {
+                editedFile.delete();
+            }
+
+        }
+
+        File tempFile = new File(file.getParent(), "temp_" + file.getName());
+
+        try (RandomAccessFile sourceRaf = new RandomAccessFile(file, "r");
+             RandomAccessFile targetRaf = new RandomAccessFile(tempFile, "rw")) {
+
+            // 1. Копируем данные ДО обнуляемого блока
+            if (startPosition > 0) {
+                byte[] beforeBuffer = new byte[startPosition];
+                sourceRaf.seek(0);
+                sourceRaf.readFully(beforeBuffer);
+                targetRaf.write(beforeBuffer);
+            }
+
+
+            // 3. Пропускаем обнуляемый блок в исходном файле
+            sourceRaf.seek(startPosition + length);
+
+            // 4. Копируем данные ПОСЛЕ обнуляемого блока
+            long bytesAfter = fileSize - (startPosition + length);
+            if (bytesAfter > 0) {
+                byte[] afterBuffer = new byte[(int) bytesAfter];
+                sourceRaf.readFully(afterBuffer);
+                targetRaf.write(afterBuffer);
+            }
+        }
+
+        if (isFileACopy) {
+            this.file.delete();
+        }
+
+        tempFile.renameTo(editedFile);
+        this.file = editedFile;
+        this.isFileACopy = true;
+
+        // Обновляем размер файла в модели
+        this.fileSize = file.length();
+
+
+        calculateTotalPages();
+
+        if (currentPageNumber > totalPages) {
+            currentPageNumber = (int) totalPages;
+        } // меняем номер текущей страницы на номер последней страницы если необходимо
+
+
+    }
 }
