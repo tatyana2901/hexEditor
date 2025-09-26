@@ -1,4 +1,5 @@
 import controller.HexEditorController;
+import model.HexEditingService;
 import model.HexEditorModel;
 import model.HexSearchService;
 import model.HexTableModel;
@@ -22,11 +23,13 @@ public class Main {
         HexSearchService searchService = new HexSearchService(editorModel);
         EditPanel editPanel = new EditPanel();
         TableContextMenu tableContextMenu = new TableContextMenu();
+        HexEditingService editingService = new HexEditingService(editorModel);
+
 
         HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel,
                 blockBytesMenuBar, labelInfoPanel, searchPanel, editPanel, tableContextMenu);
 
-        new HexEditorController(view, editorModel, searchService);
+        new HexEditorController(view, editorModel, searchService, editingService);
 
 
     }

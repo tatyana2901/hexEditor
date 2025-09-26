@@ -1,6 +1,7 @@
 package controller;
 
 import model.DataType;
+import model.HexEditingService;
 import model.HexEditorModel;
 import model.HexSearchService;
 import model.cache.PageCache;
@@ -15,12 +16,13 @@ public class HexEditorController {
     private HexEditorView view;
     private HexEditorModel editorModel;
     private HexSearchService searchService;
+    private HexEditingService editingService;
 
-
-    public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexSearchService searchService) {
+    public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexSearchService searchService, HexEditingService editingService) {
         this.view = view;
         this.editorModel = editorModel;
         this.searchService = searchService;
+        this.editingService = editingService;
 
         view.addOpenFileListener(e -> openFile());
         view.addNextPageButtonListener(e -> nextPage());
@@ -93,10 +95,10 @@ public class HexEditorController {
             }
 
             // 5. Выполняем обнуление
-            editorModel.removeBytes(startPosition, length);
+            editingService.removeBytes(startPosition, length);
 
             // 6. Обновляем отображение
-            PageCache.clearCache();
+
             displayPage(editorModel.getCurrentPageNumber());
 
             // 7. Снимаем выделение
@@ -158,11 +160,10 @@ public class HexEditorController {
             }
 
             // 5. Выполняем обнуление
-            editorModel.zeroOutBytes(startPosition, length);
+            editingService.zeroOutBytes(startPosition, length);
 
             // 6. Обновляем отображение
 
-            PageCache.getCache().remove(editorModel.getCurrentPageNumber()); //ПРОВЕРИТЬ!!!
             displayPage(editorModel.getCurrentPageNumber());
 
             // 7. Снимаем выделение
