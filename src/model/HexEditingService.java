@@ -1,7 +1,6 @@
 package model;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -43,8 +42,9 @@ public class HexEditingService {
             throw new IllegalArgumentException("Некорректная позиция или длина");
         }
 
+        File originalFile = editorModel.getFile();
         if (editedFile == null) {
-            File originalFile = editorModel.getFile();
+
             this.editedFile = new File(originalFile.getParent(), "edited_" + originalFile.getName());
             //если в папке уже есть файл с именем editedFile , то удаляем его из папки
             if (editedFile.exists()) {
@@ -53,7 +53,7 @@ public class HexEditingService {
                 }
             }
         }
-        File originalFile = editorModel.getFile();
+
         this.tempFile = new File(originalFile.getParent(), "temp_" + originalFile.getName());
 
         try (RandomAccessFile sourceRaf = new RandomAccessFile(originalFile, "r");
@@ -66,9 +66,8 @@ public class HexEditingService {
                 sourceRaf.readFully(beforeBuffer);
                 targetRaf.write(beforeBuffer);
             }
-            //  byte[] zeros = new byte[length];
-            insertBytesRange(targetRaf, rangeToInsert);
 
+            insertBytesRange(targetRaf, rangeToInsert);
 
             // 3. Пропускаем обнуляемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ!!!!!
             sourceRaf.seek(startPosition + length);
@@ -80,34 +79,27 @@ public class HexEditingService {
                 sourceRaf.readFully(afterBuffer);
                 targetRaf.write(afterBuffer);
             }
-
-
-            if (isFileACopy) {
-                if (!originalFile.delete()) {
-                    System.out.println(("Не получилось удалить временный файл " + originalFile.getName()));
-                }
-            }
-
-            if (!tempFile.renameTo(editedFile)) {
-                System.out.println("Не удалось переместить временный файл в редактируемый файл.");
-            }
-            // editorModel.setFile(editedFile);
-
-            editorModel.initializeModel(editedFile);
-            this.isFileACopy = true;
-
         }
 
+        if (isFileACopy) {
+            if (!originalFile.delete()) {
+                System.out.println(("Не получилось удалить временный файл " + originalFile.getName()));
+            }
+        }
+
+        if (!tempFile.renameTo(editedFile)) {
+            System.out.println("Не удалось переместить временный файл в редактируемый файл.");
+        }
+
+        editorModel.initializeModel(editedFile);
+        this.isFileACopy = true;
     }
 
     private void insertBytesRange(RandomAccessFile targetRaf, byte[] rangeToInsert) throws IOException {
         if (rangeToInsert == null) {
             return;
         }
-        // 2. Записываем нули вместо удаляемого блока
-        //  byte[] zeros = new byte[insertedRangeLength];
         targetRaf.write(rangeToInsert);
-
     }
 
 
