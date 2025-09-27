@@ -4,7 +4,6 @@ import model.DataType;
 import model.HexEditingService;
 import model.HexEditorModel;
 import model.HexSearchService;
-import model.cache.PageCache;
 import view.HexEditorView;
 
 import javax.swing.*;
@@ -45,7 +44,7 @@ public class HexEditorController {
         view.addEnableEditListener(e -> activateEditMode());
         view.addContextDeleteWithShiftListener(e -> deleteSelectedBytes((startPosition, length) -> {
             try {
-                editingService.removeBytes(startPosition, length);
+                editingService.removeBytesWithShift(startPosition, length);
             } catch (IOException ex) {
                 view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
                 ex.printStackTrace();
@@ -53,7 +52,7 @@ public class HexEditorController {
         }));
         view.addContextDeleteWithZeroListener(e -> deleteSelectedBytes((integer, integer2) -> {
             try {
-                editingService.zeroOutBytes(integer,integer2);
+                editingService.removeBytesWithZero(integer,integer2);
             } catch (IOException ex) {
                 view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
                 ex.printStackTrace();

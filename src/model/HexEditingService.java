@@ -18,14 +18,25 @@ public class HexEditingService {
     }
 
     //обнулить выделенные данные
-    public void zeroOutBytes(int startPosition, int length) throws IOException {
+    public void removeBytesWithZero(int startPosition, int length) throws IOException {
         byte[] zeros = new byte[length]; //создали пустой с нулями массив байт
         editFile(startPosition, length, zeros);
     }
 
     //удалить со сдвигом выделенные данные
-    public void removeBytes(int startPosition, int length) throws IOException {
+    public void removeBytesWithShift(int startPosition, int length) throws IOException {
         editFile(startPosition, length, null);
+    }
+
+    //вставить байты со сдвигом
+    public void insertBytesWithShift() {
+    }
+
+    //вставить байты с перезаписью
+    public void insertBytesOnCurrent(int startPosition, int length, byte[] rangeToInsert) throws IOException {
+
+        editFile(startPosition, length, rangeToInsert);
+
     }
 
 
@@ -69,7 +80,7 @@ public class HexEditingService {
 
             insertBytesRange(targetRaf, rangeToInsert);
 
-            // 3. Пропускаем обнуляемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ!!!!!
+            // 3. Пропускаем обнуляемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ - пропускать ничего не надо будет!!!!!
             sourceRaf.seek(startPosition + length);
 
             // 4. Копируем данные ПОСЛЕ обнуляемого блока
