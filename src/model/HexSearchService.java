@@ -52,32 +52,11 @@ public class HexSearchService {
         throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
     }
 
-    private byte[] parseHexPattern(String pattern) {
-        String cleanPattern = pattern.replaceAll("[^0-9A-Fa-f]", "");
-
-        if (cleanPattern.isEmpty()) {
-            throw new IllegalArgumentException("Пустой шаблон поиска");
-        }
-        if (cleanPattern.length() % 2 != 0) {
-            throw new IllegalArgumentException("Некорректная длина hex-строки");
-        }
-
-        byte[] result = new byte[cleanPattern.length() / 2];
-
-        for (int i = 0; i < result.length; i++) {
-            String byteStr = cleanPattern.substring(i * 2, i * 2 + 2);
-            result[i] = (byte) Integer.parseInt(byteStr, 16);
-        }
-
-
-        return result;
-    }
-
 
     public void searchBytes(String hexPattern, String hexMask) throws IOException {
-        byte[] pattern = parseHexPattern(hexPattern);
+        byte[] pattern = HexUtils.parseHexBytes(hexPattern);
 
-        byte[] mask = hexMask.isEmpty() ? null : parseHexPattern(hexMask);
+        byte[] mask = hexMask.isEmpty() ? null : HexUtils.parseHexBytes(hexMask);
 
         searchResults = editorModel.findBytes(pattern, mask);
         currentSearchIndex = searchResults.isEmpty() ? -1 : 0;

@@ -1,9 +1,6 @@
 package controller;
 
-import model.DataType;
-import model.HexEditingService;
-import model.HexEditorModel;
-import model.HexSearchService;
+import model.*;
 import view.HexEditorView;
 
 import javax.swing.*;
@@ -65,6 +62,7 @@ public class HexEditorController {
         }));
     }
 
+
     private void activateEditMode() {
         boolean newEditMode = !view.isEditMode();
 
@@ -78,76 +76,57 @@ public class HexEditorController {
         view.setTableContextMenuEnabled(newEditMode);
     }
 
-    private void changeSingleByteValue() {
+    private boolean validateEditConditions() {
+        if (!view.isEditMode()) {
+            view.showErrorDialog("Включите режим редактирования", "Ошибка");
+            return false;
+        }
+
+        if (editorModel.getType() != DataType.BYTE) {
+            view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
+            return false;
+        }
+
+        if (editorModel.getFile() == null) {
+            view.showErrorDialog("Файл не открыт", "Ошибка");
+            return false;
+        }
+
+        return true;
+    }
+
+    private Integer getSelectedPosition() {
+        int[] selectedRows = view.getSelectedRows();
+        int[] selectedColumns = view.getSelectedColumns();
+
+        if (selectedRows.length > 0 && selectedColumns.length > 0) {
+            int[] selection = editorModel.getSelectedBytesRange(selectedRows, selectedColumns);
+            return selection[0];
+        }
+        return null;
+    }
+
+
+    private byte[] requestHexBytesFromUser(String title, String message) {
+        String bytesInput = JOptionPane.showInputDialog(
+                view,
+                message,
+                title,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (bytesInput == null || bytesInput.trim().isEmpty()) {
+            return null;
+        }
+
+        return HexUtils.parseHexBytes(bytesInput);
+    }
+
+    private void executeEditingOperation(Runnable editingOperation, String successMessage) {
         try {
-            // 1. Проверяем условия
-            if (!view.isEditMode()) {
-                view.showErrorDialog("Включите режим редактирования", "Ошибка");
-                return;
-            }
-
-            if (editorModel.getType() != DataType.BYTE) {
-                view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
-                return;
-            }
-
-            if (editorModel.getFile() == null) {
-                view.showErrorDialog("Файл не открыт", "Ошибка");
-                return;
-            }
-
-            // 2. Получаем выделенную ячейку
-            int selectedRow = view.getSelectedRow();
-            int selectedColumn = view.getSelectedColumn();
-
-            if (selectedRow < 0 || selectedColumn <= 0) {
-                view.showErrorDialog("Выберите байт для редактирования", "Ошибка");
-                return;
-            }
-
-            // 3. Получаем позицию в файле
-            int[] selection = editorModel.getSelectedBytesRange(
-                    new int[]{selectedRow}, new int[]{selectedColumn});
-            int position = selection[0];
-
-            // 4. Запрашиваем новое значение у пользователя
-            String newValueStr = JOptionPane.showInputDialog(
-                    view,
-                    String.format("Введите новое значение байта (hex, 00-FF):\nПозиция: %d", position),
-                    "Изменение байта",
-                    JOptionPane.QUESTION_MESSAGE
-            );
-
-            if (newValueStr == null || newValueStr.trim().isEmpty()) {
-                return; // пользователь отменил ввод
-            }
-
-            // 5. Парсим hex значение
-            byte newValue;
-            try {
-                newValueStr = newValueStr.trim().replaceAll("[^0-9A-Fa-f]", "");
-                if (newValueStr.length() != 2) {
-                    throw new IllegalArgumentException("Введите ровно 2 hex-символа");
-                }
-                newValue = (byte) Integer.parseInt(newValueStr, 16);
-            } catch (IllegalArgumentException ex) {
-                view.showErrorDialog("Некорректное hex-значение: " + ex.getMessage(), "Ошибка");
-                return;
-            }
-
-            // 6. Выполняем редактирование
-            editingService.editSingleByte(position, newValue);
-
-            // 7. Обновляем отображение
+            editingOperation.run();
             displayPage(editorModel.getCurrentPageNumber());
-
-            // 8. Уведомляем пользователя
-            view.showInfoDialog(
-                    String.format("Байт успешно изменен\nПозиция: %d\nСтарое значение: %s\nНовое значение: %02X",
-                            position, view.getSearchPattern(), newValue),
-                    "Успех"
-            );
-
+            view.showInfoDialog(successMessage, "Успех");
         } catch (IllegalStateException | IllegalArgumentException ex) {
             view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
         } catch (IOException ex) {
@@ -157,167 +136,124 @@ public class HexEditorController {
             view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
             ex.printStackTrace();
         }
+    }
+
+    private void changeSingleByteValue() {
+        if (!validateEditConditions()) return;
+
+        // Получаем позицию
+        Integer position = getSelectedPosition();
+        if (position == null) {
+            view.showErrorDialog("Выберите байт для редактирования", "Ошибка");
+            return;
+        }
+
+        // Запрашиваем новое значение
+        byte[] newValueBytes = requestHexBytesFromUser(
+                "Изменение байта",
+                String.format("Введите новое значение байта (hex, 00-FF):\nПозиция: %d", position)
+        );
+
+        if (newValueBytes == null || newValueBytes.length != 1) {
+            view.showErrorDialog("Введите ровно 1 байт (2 hex-символа)", "Ошибка");
+            return;
+        }
+
+        // Подтверждение
+        int confirm = JOptionPane.showConfirmDialog(
+                view,
+                String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
+                        position, newValueBytes[0]),
+                "Подтверждение изменения",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        // Выполняем операцию
+        executeEditingOperation(
+                () -> {
+                    try {
+                        editingService.editSingleByte(position, newValueBytes[0]);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                String.format("Байт успешно изменен\nПозиция: %d\nНовое значение: %02X",
+                        position, newValueBytes[0])
+        );
     }
 
     private void insertBytes(boolean withShift) {
-        try {
-            // 1. Проверяем условия
-            if (!view.isEditMode()) {
-                view.showErrorDialog("Включите режим редактирования", "Ошибка");
-                return;
-            }
+        if (!validateEditConditions()) return;
 
-            if (editorModel.getType() != DataType.BYTE) {
-                view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
-                return;
-            }
+        // Получаем позицию
+        Integer position = getSelectedPosition();
+        if (position == null) {
+            return;
+        }
 
-            if (editorModel.getFile() == null) {
-                view.showErrorDialog("Файл не открыт", "Ошибка");
-                return;
-            }
+        // Запрашиваем байты для вставки
+        byte[] bytesToInsert = requestHexBytesFromUser(
+                "Вставка байтов",
+                "Введите байты для вставки (hex, через пробел или без разделителей):\n" +
+                        "Пример: FF A1 3C или FFA13C\n\n" +
+                        "Позиция: " + position + "\n" +
+                        "Режим: " + (withShift ? "со сдвигом" : "с заменой")
+        );
 
-            // 2. Получаем позицию для вставки
-            int startPosition;
-            int[] selectedRows = view.getSelectedRows();
-            int[] selectedColumns = view.getSelectedColumns();
+        if (bytesToInsert == null || bytesToInsert.length == 0) {
+            view.showErrorDialog("Не удалось распознать байты", "Ошибка");
+            return;
+        }
 
-            if (selectedRows.length > 0 && selectedColumns.length > 0) {
-                // Если есть выделение - используем его начало как позицию вставки
-                int[] selection = editorModel.getSelectedBytesRange(selectedRows, selectedColumns);
-                startPosition = selection[0];
-            } else {
-                // Если нет выделения - запрашиваем позицию у пользователя
-                String positionStr = JOptionPane.showInputDialog(
-                        view,
-                        "Введите позицию для вставки (десятичное число):",
-                        "Позиция вставки",
-                        JOptionPane.QUESTION_MESSAGE
-                );
+        // Подтверждение
+        int confirm = JOptionPane.showConfirmDialog(
+                view,
+                String.format("Подтвердите вставку:\n\n" +
+                                "Позиция: %d\n" +
+                                "Количество байт: %d\n" +
+                                "Режим: %s\n" +
+                                "Байты: %s\n\n" +
+                                "Это действие нельзя отменить. Будет создана резервная копия файла.",
+                        position, bytesToInsert.length,
+                        withShift ? "со сдвигом" : "с заменой",
+                        HexUtils.bytesToHexString(bytesToInsert)),
+                "Подтверждение вставки",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
 
-                if (positionStr == null) return; // пользователь отменил
+        if (confirm != JOptionPane.YES_OPTION) return;
 
-                try {
-                    startPosition = Integer.parseInt(positionStr.trim());
-                    if (startPosition < 0 || startPosition > editorModel.getFileSize()) {
-                        view.showErrorDialog("Некорректная позиция. Допустимый диапазон: 0 - " + editorModel.getFileSize(), "Ошибка");
-                        return;
+        // Создаем final копии для использования в лямбде
+        final int finalPosition = position;
+        final byte[] finalBytesToInsert = bytesToInsert;
+        final boolean finalWithShift = withShift;
+
+        // Выполняем операцию
+        String operationName = withShift ? "вставлены со сдвигом" : "вставлены с заменой";
+        executeEditingOperation(
+                () -> {
+                    if (finalWithShift) {
+                        try {
+                            editingService.insertBytesWithShift(finalPosition, finalBytesToInsert);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        try {
+                            editingService.insertBytesWithOverwrite(finalPosition, finalBytesToInsert);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                } catch (NumberFormatException ex) {
-                    view.showErrorDialog("Некорректный формат числа", "Ошибка");
-                    return;
-                }
-            }
-
-            // 3. Запрашиваем байты для вставки
-            String bytesInput = JOptionPane.showInputDialog(
-                    view,
-                    "Введите байты для вставки (hex, через пробел или без разделителей):\n" +
-                            "Пример: FF A1 3C или FFA13C\n\n" +
-                            "Позиция: " + startPosition + "\n" +
-                            "Режим: " + (withShift ? "со сдвигом" : "с заменой"),
-                    "Вставка байтов",
-                    JOptionPane.QUESTION_MESSAGE
-            );
-
-            if (bytesInput == null || bytesInput.trim().isEmpty()) {
-                return; // пользователь отменил
-            }
-
-            // 4. Парсим введенные байты
-            byte[] bytesToInsert = parseHexBytes(bytesInput);
-            if (bytesToInsert == null || bytesToInsert.length == 0) {
-                view.showErrorDialog("Не удалось распознать байты", "Ошибка");
-                return;
-            }
-
-            // 5. Подтверждение действия
-            int confirm = JOptionPane.showConfirmDialog(
-                    view,
-                    String.format("Подтвердите вставку:\n\n" +
-                                    "Позиция: %d\n" +
-                                    "Количество байт: %d\n" +
-                                    "Режим: %s\n" +
-                                    "Байты: %s\n\n" +
-                                    "Это действие нельзя отменить. Будет создана резервная копия файла.",
-                            startPosition, bytesToInsert.length,
-                            withShift ? "со сдвигом" : "с заменой",
-                            bytesToHexString(bytesToInsert)),
-                    "Подтверждение вставки",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            if (confirm != JOptionPane.YES_OPTION) {
-                return;
-            }
-
-            // 6. Выполняем вставку
-            if (withShift) {
-                editingService.insertBytesWithShift(startPosition, bytesToInsert);
-            } else {
-                editingService.insertBytesWithOverwrite(startPosition, bytesToInsert);
-            }
-
-            // 7. Обновляем отображение
-            displayPage(editorModel.getCurrentPageNumber());
-
-            // 8. Уведомляем пользователя
-            view.showInfoDialog(
-                    String.format("Байты успешно вставлены\nПозиция: %d\nКоличество: %d байт\nРежим: %s",
-                            startPosition, bytesToInsert.length,
-                            withShift ? "со сдвигом" : "с заменой"),
-                    "Успех"
-            );
-
-        } catch (IllegalStateException | IllegalArgumentException ex) {
-            view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
-        } catch (IOException ex) {
-            view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
-        } catch (Exception ex) {
-            view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
-        }
+                },
+                String.format("Байты успешно %s\nПозиция: %d\nКоличество: %d байт",
+                        operationName, finalPosition, finalBytesToInsert.length)
+        );
     }
-
-    // Вспомогательный метод для парсинга hex-байтов
-    private byte[] parseHexBytes(String input) {
-        try {
-            // Удаляем все не-HEX символы
-            String cleanInput = input.replaceAll("[^0-9A-Fa-f]", "");
-
-            if (cleanInput.isEmpty() || cleanInput.length() % 2 != 0) {
-                return null;
-            }
-
-            byte[] result = new byte[cleanInput.length() / 2];
-            for (int i = 0; i < result.length; i++) {
-                String byteStr = cleanInput.substring(i * 2, i * 2 + 2);
-                result[i] = (byte) Integer.parseInt(byteStr, 16);
-            }
-            return result;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    // Вспомогательный метод для форматирования байтов в строку
-    private String bytesToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            if (i > 0) sb.append(" ");
-            sb.append(String.format("%02X", bytes[i]));
-        }
-        return sb.toString();
-    }
-
-
-
-
-
-
-
 
 
     private void deleteSelectedBytes(BiConsumer<Integer, Integer> editingFunction) {
