@@ -28,19 +28,45 @@ public class HexEditingService {
         editFile(startPosition, length, raf -> {/*ничего не делаем*/}, (raf, position) -> raf.seek(position));
     }
 
-    //вставить байты со сдвигом!!!!!
-    public void insertBytesWithShift(int startPosition, int length, byte[] rangeToInsert) throws IOException {
-        editFile(startPosition, length, raf -> raf.write(rangeToInsert), (raf, position) -> {/*ничего не делаем*/});
+    // Вставить байты со сдвигом (расширяет файл)
+    public void insertBytesWithShift(int startPosition, byte[] bytesToInsert) throws IOException {
+        if (bytesToInsert == null || bytesToInsert.length == 0) {
+            throw new IllegalArgumentException("Массив байтов для вставки не может быть пустым");
+        }
 
+        editFile(startPosition, 0,
+                raf -> raf.write(bytesToInsert),
+                (raf, position) -> {
+                    // Ничего не делаем - не пропускаем байты в исходном файле
+                }
+        );
     }
 
-    //вставить байты с перезаписью (аналогично удалению данных с обнулением)
-    public void insertBytesOnCurrent(int startPosition, int length, byte[] rangeToInsert) throws IOException {
-        if (rangeToInsert != null && length != rangeToInsert.length) {
-            throw new IllegalArgumentException("Количество байт вставки отличается от размера редактируемого блока.");
+    public void insertBytesWithOverwrite(int startPosition, byte[] bytesToInsert) throws IOException {
+        if (bytesToInsert == null || bytesToInsert.length == 0) {
+            throw new IllegalArgumentException("Массив байтов для вставки не может быть пустым");
         }
-        editFile(startPosition, length, raf -> raf.write(rangeToInsert), (raf, position) -> raf.seek(position));
+        editFile(startPosition, bytesToInsert.length,
+                raf -> raf.write(bytesToInsert),
+                (raf, position) -> raf.seek(position)
+        );
+    }
 
+    public void editSingleByte(int position, byte newValue) throws IOException {
+        if (editorModel.getType() != DataType.BYTE) {
+            throw new IllegalStateException("Редактирование разрешено только для типа BYTE");
+        }
+        if (editorModel.getFile() == null) {
+            throw new IllegalStateException("Файл не открыт");
+        }
+        if (position < 0 || position >= editorModel.getFileSize()) {
+            throw new IllegalArgumentException("Некорректная позиция");
+        }
+
+        editFile(position, 1,
+                raf -> raf.write(newValue),
+                (raf, pos) -> raf.seek(pos)
+        );
     }
 
 
@@ -53,7 +79,7 @@ public class HexEditingService {
         if (editorModel.getFile() == null) {
             throw new IllegalStateException("Файл не открыт");
         }
-        if (startPosition < 0 || length <= 0 || startPosition + length > editorModel.getFileSize()) {
+        if (startPosition < 0 || length < 0 || startPosition + length > editorModel.getFileSize()) {
             throw new IllegalArgumentException("Некорректная позиция или длина");
         }
 
@@ -89,7 +115,9 @@ public class HexEditingService {
             // 3. Пропускаем редактируемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ - пропускать ничего не надо будет!!!!!
 
             // sourceRaf.seek(startPosition + length);
-            positioner.setPosition(sourceRaf, startPosition + length);
+            if (length > 0) {
+                positioner.setPosition(sourceRaf, startPosition + length);
+            }
 
             // 4. Копируем данные ПОСЛЕ обнуляемого блока
             long bytesAfter = originalFile.length() - (startPosition + length);

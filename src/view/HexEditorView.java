@@ -140,15 +140,25 @@ public class HexEditorView extends JFrame {
         editPanel.addEnableEditListener(listener);
     }
 
-    public void addContextDeleteWithShiftListener(ActionListener listener) {
+    public void addDeleteWithShiftListener(ActionListener listener) {
         tableContextMenu.addDeleteWithShiftListener(listener);
     }
 
-    public void addContextDeleteWithZeroListener(ActionListener listener) {
+    public void addDeleteWithZeroListener(ActionListener listener) {
         tableContextMenu.addDeleteWithZeroListener(listener);
     }
 
-    public void setContextMenuEnabled(boolean enabled) {
+    public void addInsertOverwriteListener(ActionListener listener) {
+        tableContextMenu.addInsertOverwriteListener(listener);
+    }
+
+    public void addInsertShiftListener(ActionListener listener) {
+        tableContextMenu.addInsertShiftListener(listener);
+    }
+    public void addChangeByteValueListener(ActionListener listener) {
+        tableContextMenu.addChangeByteValueListener(listener);
+    }
+    public void setTableContextMenuEnabled(boolean enabled) {
         tableContextMenu.setMenuEnabled(enabled);
     }
 
