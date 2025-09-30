@@ -50,9 +50,9 @@ public class HexEditorController {
                 ex.printStackTrace();
             }
         }));
-        view.addContextDeleteWithZeroListener(e -> deleteSelectedBytes((integer, integer2) -> {
+        view.addContextDeleteWithZeroListener(e -> deleteSelectedBytes((startPosition, length) -> {
             try {
-                editingService.removeBytesWithZero(integer,integer2);
+                editingService.removeBytesWithZero(startPosition, length);
             } catch (IOException ex) {
                 view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
                 ex.printStackTrace();

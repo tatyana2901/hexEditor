@@ -20,27 +20,31 @@ public class HexEditingService {
     //обнулить выделенные данные
     public void removeBytesWithZero(int startPosition, int length) throws IOException {
         byte[] zeros = new byte[length]; //создали пустой с нулями массив байт
-        editFile(startPosition, length, zeros);
+        editFile(startPosition, length, raf -> raf.write(zeros), (raf, position) -> raf.seek(position));
     }
 
     //удалить со сдвигом выделенные данные
     public void removeBytesWithShift(int startPosition, int length) throws IOException {
-        editFile(startPosition, length, null);
+        editFile(startPosition, length, raf -> {/*ничего не делаем*/}, (raf, position) -> raf.seek(position));
     }
 
-    //вставить байты со сдвигом
-    public void insertBytesWithShift() {
+    //вставить байты со сдвигом!!!!!
+    public void insertBytesWithShift(int startPosition, int length, byte[] rangeToInsert) throws IOException {
+        editFile(startPosition, length, raf -> raf.write(rangeToInsert), (raf, position) -> {/*ничего не делаем*/});
+
     }
 
-    //вставить байты с перезаписью
+    //вставить байты с перезаписью (аналогично удалению данных с обнулением)
     public void insertBytesOnCurrent(int startPosition, int length, byte[] rangeToInsert) throws IOException {
-
-        editFile(startPosition, length, rangeToInsert);
+        if (rangeToInsert != null && length != rangeToInsert.length) {
+            throw new IllegalArgumentException("Количество байт вставки отличается от размера редактируемого блока.");
+        }
+        editFile(startPosition, length, raf -> raf.write(rangeToInsert), (raf, position) -> raf.seek(position));
 
     }
 
 
-    private void editFile(int startPosition, int length, byte[] rangeToInsert) throws IOException {
+    private void editFile(int startPosition, int length, BytesWriter writer, SeekPositioner positioner) throws IOException {
 
 
         if (editorModel.getType() != DataType.BYTE) {
@@ -52,6 +56,7 @@ public class HexEditingService {
         if (startPosition < 0 || length <= 0 || startPosition + length > editorModel.getFileSize()) {
             throw new IllegalArgumentException("Некорректная позиция или длина");
         }
+
 
         File originalFile = editorModel.getFile();
         if (editedFile == null) {
@@ -70,7 +75,7 @@ public class HexEditingService {
         try (RandomAccessFile sourceRaf = new RandomAccessFile(originalFile, "r");
              RandomAccessFile targetRaf = new RandomAccessFile(tempFile, "rw")) {
 
-            // 1. Копируем данные ДО обнуляемого блока
+            // 1. Копируем данные ДО изменяемого блока
             if (startPosition > 0) {
                 byte[] beforeBuffer = new byte[startPosition];
                 sourceRaf.seek(0);
@@ -78,10 +83,13 @@ public class HexEditingService {
                 targetRaf.write(beforeBuffer);
             }
 
-            insertBytesRange(targetRaf, rangeToInsert);
+            // 2. Функция вставки новых значений в редактируемую область, которая будет определена в конкретном методе
+            writer.write(targetRaf);
 
-            // 3. Пропускаем обнуляемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ - пропускать ничего не надо будет!!!!!
-            sourceRaf.seek(startPosition + length);
+            // 3. Пропускаем редактируемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ - пропускать ничего не надо будет!!!!!
+
+            // sourceRaf.seek(startPosition + length);
+            positioner.setPosition(sourceRaf, startPosition + length);
 
             // 4. Копируем данные ПОСЛЕ обнуляемого блока
             long bytesAfter = originalFile.length() - (startPosition + length);
@@ -106,12 +114,16 @@ public class HexEditingService {
         this.isFileACopy = true;
     }
 
-    private void insertBytesRange(RandomAccessFile targetRaf, byte[] rangeToInsert) throws IOException {
-        if (rangeToInsert == null) {
-            return;
-        }
-        targetRaf.write(rangeToInsert);
-    }
-
 
 }
+
+@FunctionalInterface
+interface BytesWriter {
+    void write(RandomAccessFile raf) throws IOException;
+}
+
+@FunctionalInterface
+interface SeekPositioner {
+    void setPosition(RandomAccessFile raf, long position) throws IOException;
+}
+
