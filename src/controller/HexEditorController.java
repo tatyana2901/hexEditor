@@ -3,7 +3,6 @@ package controller;
 import model.*;
 import view.HexEditorView;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.function.BiConsumer;
@@ -95,25 +94,21 @@ public class HexEditorController {
         return true;
     }
 
-    private Integer getSelectedPosition() {
+    private int[] getSelection() {
         int[] selectedRows = view.getSelectedRows();
         int[] selectedColumns = view.getSelectedColumns();
 
         if (selectedRows.length > 0 && selectedColumns.length > 0) {
-            int[] selection = editorModel.getSelectedBytesRange(selectedRows, selectedColumns);
-            return selection[0];
+            return editorModel.getSelectedBytesRange(selectedRows, selectedColumns);
         }
         return null;
+
+
     }
 
 
     private byte[] requestHexBytesFromUser(String title, String message) {
-        String bytesInput = JOptionPane.showInputDialog(
-                view,
-                message,
-                title,
-                JOptionPane.QUESTION_MESSAGE
-        );
+        String bytesInput = view.showInputDialog(title, message);
 
         if (bytesInput == null || bytesInput.trim().isEmpty()) {
             return null;
@@ -122,9 +117,9 @@ public class HexEditorController {
         return HexUtils.parseHexBytes(bytesInput);
     }
 
-    private void executeEditingOperation(Runnable editingOperation, String successMessage) {
+    private void executeEditingOperation(EditingOperation editingOperation, String successMessage) {
         try {
-            editingOperation.run();
+            editingOperation.execute();
             displayPage(editorModel.getCurrentPageNumber());
             view.showInfoDialog(successMessage, "Успех");
         } catch (IllegalStateException | IllegalArgumentException ex) {
@@ -142,11 +137,13 @@ public class HexEditorController {
         if (!validateEditConditions()) return;
 
         // Получаем позицию
-        Integer position = getSelectedPosition();
-        if (position == null) {
+        int[] selection = getSelection();
+        if (selection == null) {
             view.showErrorDialog("Выберите байт для редактирования", "Ошибка");
             return;
         }
+        Integer position = selection[0];
+
 
         // Запрашиваем новое значение
         byte[] newValueBytes = requestHexBytesFromUser(
@@ -160,25 +157,15 @@ public class HexEditorController {
         }
 
         // Подтверждение
-        int confirm = JOptionPane.showConfirmDialog(
-                view,
-                String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
-                        position, newValueBytes[0]),
-                "Подтверждение изменения",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+        int confirm = view.showConfirmDialog("Подтверждение изменения", String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
+                position, newValueBytes[0]));
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (confirm != view.YES_OPTION) return;
 
         // Выполняем операцию
         executeEditingOperation(
                 () -> {
-                    try {
-                        editingService.editSingleByte(position, newValueBytes[0]);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    editingService.editSingleByte(position, newValueBytes[0]);
                 },
                 String.format("Байт успешно изменен\nПозиция: %d\nНовое значение: %02X",
                         position, newValueBytes[0])
@@ -189,10 +176,12 @@ public class HexEditorController {
         if (!validateEditConditions()) return;
 
         // Получаем позицию
-        Integer position = getSelectedPosition();
-        if (position == null) {
+        int[] selection = getSelection();
+        if (selection == null) {
+            view.showErrorDialog("Выберите позицию для вставки", "Ошибка");
             return;
         }
+        Integer position = selection[0];
 
         // Запрашиваем байты для вставки
         byte[] bytesToInsert = requestHexBytesFromUser(
@@ -209,23 +198,18 @@ public class HexEditorController {
         }
 
         // Подтверждение
-        int confirm = JOptionPane.showConfirmDialog(
-                view,
-                String.format("Подтвердите вставку:\n\n" +
-                                "Позиция: %d\n" +
-                                "Количество байт: %d\n" +
-                                "Режим: %s\n" +
-                                "Байты: %s\n\n" +
-                                "Это действие нельзя отменить. Будет создана резервная копия файла.",
-                        position, bytesToInsert.length,
-                        withShift ? "со сдвигом" : "с заменой",
-                        HexUtils.bytesToHexString(bytesToInsert)),
-                "Подтверждение вставки",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
+        int confirm = view.showConfirmDialog("Подтверждение вставки", String.format("Подтвердите вставку:\n\n" +
+                        "Позиция: %d\n" +
+                        "Количество байт: %d\n" +
+                        "Режим: %s\n" +
+                        "Байты: %s\n\n" +
+                        "Это действие нельзя отменить. Будет создана резервная копия файла.",
+                position, bytesToInsert.length,
+                withShift ? "со сдвигом" : "с заменой",
+                HexUtils.bytesToHexString(bytesToInsert))
         );
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+        if (confirm != view.YES_OPTION) return;
 
         // Создаем final копии для использования в лямбде
         final int finalPosition = position;
@@ -237,85 +221,48 @@ public class HexEditorController {
         executeEditingOperation(
                 () -> {
                     if (finalWithShift) {
-                        try {
-                            editingService.insertBytesWithShift(finalPosition, finalBytesToInsert);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        editingService.insertBytesWithShift(finalPosition, finalBytesToInsert);
                     } else {
-                        try {
-                            editingService.insertBytesWithOverwrite(finalPosition, finalBytesToInsert);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        editingService.insertBytesWithOverwrite(finalPosition, finalBytesToInsert);
                     }
                 },
-                String.format("Байты успешно %s\nПозиция: %d\nКоличество: %d байт",
+                String.format("Байты успешно вставлены %s\nПозиция: %d\nКоличество: %d байт",
                         operationName, finalPosition, finalBytesToInsert.length)
         );
     }
 
 
     private void deleteSelectedBytes(BiConsumer<Integer, Integer> editingFunction) {
+        if (!validateEditConditions()) return;
         try {
-            // 1. Проверяем условия
-            if (!view.isEditMode()) {
-                view.showErrorDialog("Включите режим редактирования", "Ошибка");
+            int[] selection = getSelection();
+            if (selection == null) {
+                view.showErrorDialog("Выберите байты для удаления", "Ошибка");
                 return;
             }
-
-            if (editorModel.getType() != DataType.BYTE) {
-                view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
-                return;
-            }
-
-            if (editorModel.getFile() == null) {
-                view.showErrorDialog("Файл не открыт", "Ошибка");
-                return;
-            }
-
-            // 2. Получаем выделение из view
-            int[] selectedRows = view.getSelectedRows();
-            int[] selectedColumns = view.getSelectedColumns();
-
-            // 3. Получаем диапазон из модели
-            int[] selection = editorModel.getSelectedBytesRange(
-                    selectedRows, selectedColumns);
-
-            int startPosition = selection[0];
+            Integer position = selection[0];
             int length = selection[1];
 
-            // 4. Подтверждение действия
-            int confirm = view.showConfirmDeleteWithZeroDialog(startPosition, length, selectedRows.length * selectedColumns.length);
-            if (confirm != JOptionPane.YES_OPTION) {
-                return;
-            }
+            int confirm = view.showConfirmDialog("Подтверждение обнуления",
+                    String.format("Обнулить выделенные байты?\n\n" +
+                                    "Позиция: %d\n" +
+                                    "Выделено: %d ячеек\n" +
+                                    "Это действие нельзя отменить. Будет создана резервная копия файла.",
+                            position, length));
 
-            // 5. Выполняем обнуление
-            editingFunction.accept(startPosition, length);
+            if (confirm != view.YES_OPTION) return;
 
-            // 6. Обновляем отображение
-
-            displayPage(editorModel.getCurrentPageNumber());
-
-            // 7. Снимаем выделение
-            view.clearSelection();
-
-            // 8. Уведомляем пользователя
-            view.showInfoDialog(
+            // Используем executeEditingOperation для единообразия
+            executeEditingOperation(
+                    () -> editingFunction.accept(position, length),
                     String.format("Байты успешно удалены\nПозиция: %d, Количество: %d байт",
-                            startPosition, length),
-                    "Успех"
+                            position, length)
             );
+
+            view.clearSelection();
 
         } catch (IllegalStateException | IllegalArgumentException ex) {
             view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
-        } catch (IOException ex) {
-            view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
-        } catch (Exception ex) {
-            view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
         }
 
     }
@@ -567,3 +514,7 @@ public class HexEditorController {
     }
 }
 
+@FunctionalInterface
+interface EditingOperation {
+    void execute() throws IOException;
+}

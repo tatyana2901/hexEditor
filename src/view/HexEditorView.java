@@ -23,6 +23,9 @@ public class HexEditorView extends JFrame {
     private TableContextMenu tableContextMenu;
     private JTable dataTable;
 
+    public static final int YES_OPTION = JOptionPane.YES_OPTION;
+    public static final int NO_OPTION = JOptionPane.NO_OPTION;
+
     //ЗАМЕНИТЬ НА ИНТЕРФЕЙСЫ????
     public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
@@ -155,9 +158,11 @@ public class HexEditorView extends JFrame {
     public void addInsertShiftListener(ActionListener listener) {
         tableContextMenu.addInsertShiftListener(listener);
     }
+
     public void addChangeByteValueListener(ActionListener listener) {
         tableContextMenu.addChangeByteValueListener(listener);
     }
+
     public void setTableContextMenuEnabled(boolean enabled) {
         tableContextMenu.setMenuEnabled(enabled);
     }
@@ -311,22 +316,38 @@ public class HexEditorView extends JFrame {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public int showConfirmDeleteWithZeroDialog(int startPosition, int count, int selectedCount) {
-        return
-                JOptionPane.showConfirmDialog(
-                        this,
-                        String.format("Обнулить выделенные байты?\n\n" +
-                                        "Позиция: %d\n" +
-                                        "Количество: %d байт\n" +
-                                        "Выделено: %d ячеек\n\n" +
-                                        "Это действие нельзя отменить. Будет создана резервная копия файла.",
-                                startPosition, count, selectedCount),
-                        "Подтверждение обнуления",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
+    public int showConfirmDialog(String title, String text) {
+        return JOptionPane.showConfirmDialog(
+                this,
+                text,
+                title,
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
 
     }
+
+    public String showInputDialog(String title, String message) {
+
+        return JOptionPane.showInputDialog(
+                this,
+                message,
+                title,
+                JOptionPane.QUESTION_MESSAGE
+        );
+    }
+/*
+    public int showConfirmChangeSingleByteValueDialog(int position, byte value) {
+        return JOptionPane.showConfirmDialog(
+                this,
+                String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
+                        position, value),
+                "Подтверждение изменения",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+    }*/
 
 
     //ПЕРЕРИСОВКА ТАБЛИЦЫ
