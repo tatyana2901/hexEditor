@@ -114,7 +114,7 @@ public class HexEditingService {
 
             // 3. Пропускаем редактируемый блок в исходном файле ПРИ ВСТАВКЕ ЭТОЙ ОПЕРАЦИИ ВЫПОЛНЯТЬСЯ НЕ БУДЕТ - пропускать ничего не надо будет!!!!!
 
-            // sourceRaf.seek(startPosition + length);
+
             if (length > 0) {
                 positioner.setPosition(sourceRaf, startPosition + length);
             }

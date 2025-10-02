@@ -37,16 +37,4 @@ public class HexUtils {
         return sb.toString();
     }
 
-    public static byte parseSingleHexByte(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            throw new IllegalArgumentException("Пустая строка");
-        }
-
-        String cleanInput = input.trim().replaceAll("[^0-9A-Fa-f]", "");
-        if (cleanInput.length() != 2) {
-            throw new IllegalArgumentException("Введите ровно 2 hex-символа");
-        }
-
-        return (byte) Integer.parseInt(cleanInput, 16);
-    }
 }

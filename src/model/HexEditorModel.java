@@ -11,7 +11,7 @@ import java.util.*;
 
 public class HexEditorModel {
 
-    //String dataType - формат данных - short,byte,int,float ...
+
     List<Object> data;//- список объектов для передачи в таблицу jtable/ при передаче или после передачи объект должны конветироваться специальными методами в нужные типы данных
 
     private int itemsPerLine = 16; // количество элементов в одной строке по умолчанию 16
@@ -229,7 +229,7 @@ public class HexEditorModel {
     }
 
 
-    //ОН ТОЧНО ДОЛЖЕН БЫТЬ ЗДЕСЬ??
+
     public int[] getSelectedBytesRange(int[] selectedRows, int[] selectedColumns) {
         if (selectedRows == null || selectedColumns == null ||
                 selectedRows.length == 0 || selectedColumns.length == 0) {

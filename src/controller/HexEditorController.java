@@ -30,7 +30,7 @@ public class HexEditorController {
 
         setupDataTypeListeners();
 
-        //Слушатели для переключателей опций знаковости
+
         view.addSignedItemListener(e -> setSigned(true));
         view.addUnsignedItemListener(e -> setSigned(false));
 
@@ -65,7 +65,7 @@ public class HexEditorController {
     private void activateEditMode() {
         boolean newEditMode = !view.isEditMode();
 
-        // Проверяем, что тип данных BYTE
+
         if (newEditMode && editorModel.getType() != DataType.BYTE) {
             view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
             return;
@@ -136,7 +136,7 @@ public class HexEditorController {
     private void changeSingleByteValue() {
         if (!validateEditConditions()) return;
 
-        // Получаем позицию
+
         int[] selection = getSelection();
         if (selection == null) {
             view.showErrorDialog("Выберите байт для редактирования", "Ошибка");

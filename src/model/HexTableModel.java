@@ -3,7 +3,7 @@ package model;
 import javax.swing.table.AbstractTableModel;
 
 
-//SWING WOKER?? ЧТО ЭТО?? посмотреть
+
 
 public class HexTableModel extends AbstractTableModel {
 

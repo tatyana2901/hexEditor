@@ -26,7 +26,7 @@ public class HexEditorView extends JFrame {
     public static final int YES_OPTION = JOptionPane.YES_OPTION;
     public static final int NO_OPTION = JOptionPane.NO_OPTION;
 
-    //ЗАМЕНИТЬ НА ИНТЕРФЕЙСЫ????
+
     public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
                          BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
