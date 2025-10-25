@@ -4,12 +4,12 @@ import java.util.*;
 
 public class PageCache {
 
-    private List<Object> pageData;
+    private List<Byte> pageData;
     private int pageNumber; //номер страницы
 
     private static Map<Integer, PageCache> cache = new HashMap<>(); //все страницы файла в кэше
 
-    public PageCache(List<Object> pageData, int pageNumber) {
+    public PageCache(List<Byte> pageData, int pageNumber) {
         if (pageNumber > 0 && pageData != null) {
             this.pageData = pageData;
             this.pageNumber = pageNumber;
@@ -21,7 +21,7 @@ public class PageCache {
         return pageNumber;
     }
 
-    public List<Object> getPageData() {
+    public List<Byte> getPageData() {
         return pageData;
     }
 
@@ -39,7 +39,7 @@ public class PageCache {
         }
     }
 
-    public static List<Object> getCachedPageByNumber(int pageNumber) {
+    public static List<Byte> getCachedPageByNumber(int pageNumber) {
         return cache.get(pageNumber).getPageData();
     }
 

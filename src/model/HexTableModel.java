@@ -17,7 +17,9 @@ public class HexTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return (int) Math.ceil((double) hexEditorModel.getData().size() / hexEditorModel.getItemsPerLine());
+
+     //   return hexEditorModel.getLinesPerPage(); //ЗАМЕНИЛА ОПРЕДЕЛЕНИЕ!!!
+          return (int) Math.ceil((double) hexEditorModel.getData().size()/hexEditorModel.getType().getBlockSize() / hexEditorModel.getItemsPerLine());
     }
 
     @Override
@@ -35,7 +37,7 @@ public class HexTableModel extends AbstractTableModel {
             if (columnIndex == 0) {
                 // Первый столбец - адрес
                 return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
-            } else if (index >= 0 && index < hexEditorModel.getData().size()) {
+            } else if (index >= 0 && index < hexEditorModel.getData().size()) { //ВНЕСТИ ПРАВКИ В СВЯЗИ С ИЗМЕНЕНИЕМ ХРАНЕНИЯ ВМЕСТО ОБДЖЕКТА БАЙТОВ
                 // Данные из файла
                 return getFormattedRow(hexEditorModel.getType(), index);
             } else {
@@ -52,24 +54,31 @@ public class HexTableModel extends AbstractTableModel {
 
     private String getFormattedRow(DataType type, int index) {
         try {
-            Object value = hexEditorModel.getData().get(index);
+            //   byte value = hexEditorModel.getData().get(index);
 
+            byte[] bytesToConvert = BlockDataConverter.getBlockByPositionInList(hexEditorModel.getData(), type.getBlockSize(), index);
             switch (type) {
 
                 case BYTE:
-                    return String.format("%02X", (Byte) value); // Всегда без знака (hex)
+
+                    return String.format("%02X", hexEditorModel.getData().get(index)); // Всегда без знака (hex)
                 case SHORT:
-                    return hexEditorModel.isSigned() ? String.format("%d", (Short) value) : Short.toUnsignedInt((Short) value) + "";
+                    short shortValue = BlockDataConverter.getShortsFromBytes(bytesToConvert);
+                    return hexEditorModel.isSigned() ? String.format("%d", shortValue) : Short.toUnsignedInt(shortValue) + "";
                 case INTEGER:
-                    return hexEditorModel.isSigned() ? String.format("%d", (Integer) value) : Integer.toUnsignedString((Integer) value);
+                    int intValue = BlockDataConverter.getIntsFromBytes(bytesToConvert);
+                    return hexEditorModel.isSigned() ? String.format("%d", intValue) : Integer.toUnsignedString(intValue);
                 case LONG:
-                    return hexEditorModel.isSigned() ? String.format("%d", (Long) value) : Long.toUnsignedString((Long) value);
+                    long longValue = BlockDataConverter.getLongsFromBytes(bytesToConvert);
+                    return hexEditorModel.isSigned() ? String.format("%d", longValue) : Long.toUnsignedString(longValue);
                 case FLOAT:
-                    return String.format("%10.3e", (Float) value);
+                    float floatValue = BlockDataConverter.getFloatsFromBytes(bytesToConvert);
+                    return String.format("%10.3e", floatValue);
                 case DOUBLE:
-                    return String.format("%10.3e", (Double) value);
+                    double doubleValue = BlockDataConverter.getDoublesFromBytes(bytesToConvert);
+                    return String.format("%10.3e", doubleValue);
                 default:
-                    return value.toString();
+                    return "";
             }
         } catch (Exception ex) {
             System.err.println("Ошибка форматирования значения по индексу " + index + ": " + ex.getMessage());

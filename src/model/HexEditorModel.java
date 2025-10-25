@@ -8,11 +8,12 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class HexEditorModel {
 
-
-    List<Object> data;//- список объектов для передачи в таблицу jtable/ при передаче или после передачи объект должны конветироваться специальными методами в нужные типы данных
+    //String dataType - формат данных - short,byte,int,float ...
+    List<Byte> data;
 
     private int itemsPerLine = 16; // количество элементов в одной строке по умолчанию 16
     private int linesPerPage = 16; // количество строк на странице, может быть изменено пользователем. по умолчанию 10
@@ -29,11 +30,11 @@ public class HexEditorModel {
         this.data = new ArrayList<>();
     }
 
-    public List<Object> getData() {
+    public List<Byte> getData() {
         return data;
     }
 
-    public void setData(List<Object> data) {
+    public void setData(List<Byte> data) {
         this.data = data;
     }
 
@@ -125,13 +126,8 @@ public class HexEditorModel {
     }
 
 
-    private List<Object> readPageData(int pageNumber) throws IOException {
-        /*если модификатор доступа поменяется на public, то нужно будет добавить проверки
-        if (file == null) {
-        throw new IllegalStateException("Файл не открыт. Сначала выберите файл.");
-    }if (pageNumber < 1 || pageNumber > totalPages) {
-        throw new IllegalArgumentException("Некорректный номер страницы.");
-    }*/
+    private List<Byte> readPageData(int pageNumber) throws IOException {
+
         List<Byte> bytesPageData = new ArrayList<>();
         long startPosition = (pageNumber - 1) * (long) itemsPerLine * linesPerPage * type.getBlockSize();
 
@@ -143,15 +139,18 @@ public class HexEditorModel {
             for (int i = 0; i < bytesToRead; i++) {
                 bytesPageData.add(raf.readByte());
             }
+
+          /*  byte[] buffer = new byte[bytesToRead];
+            raf.readFully(buffer);*/
+
+
+            // List<Byte> objectPageData = BlockDataConverter.convertToTypedObjectList(bytesPageData, type); //конвертируем список байтов в нужный тип числа
+
+            PageCache.addCachePage(new PageCache(bytesPageData, pageNumber)); //кладем прочитанную страницу в кэш
+            // System.out.println(bytesPageData.size());
+            // System.out.println(objectPageData); //ТЕСТ
+            return bytesPageData;
         }
-
-        List<Object> objectPageData = BlockDataConverter.convertToTypedObjectList(bytesPageData, type); //конвертируем список байтов в нужный тип числа
-
-
-        PageCache.addCachePage(new PageCache(objectPageData, pageNumber)); //кладем прочитанную страницу в кэш
-        // System.out.println(bytesPageData.size());
-        // System.out.println(objectPageData); //ТЕСТ
-        return objectPageData;
     }
 
     public void loadPageData(int pageNumber) throws IOException {
@@ -229,7 +228,7 @@ public class HexEditorModel {
     }
 
 
-
+    //ОН ТОЧНО ДОЛЖЕН БЫТЬ ЗДЕСЬ??
     public int[] getSelectedBytesRange(int[] selectedRows, int[] selectedColumns) {
         if (selectedRows == null || selectedColumns == null ||
                 selectedRows.length == 0 || selectedColumns.length == 0) {
