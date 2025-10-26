@@ -45,8 +45,8 @@ public class HexSearchService {
         if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
 
         int index = row * editorModel.getItemsPerLine() + (column - 1);
-        if (index >= 0 && index < editorModel.getData().size()) {
-            return editorModel.getData().get(index);
+        if (index >= 0 && index < editorModel.getData().length) {
+            return editorModel.getData()[index];
         }
         System.err.println("Выход за пределы значений индексов таблицы.");
         throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");

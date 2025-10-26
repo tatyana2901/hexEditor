@@ -12,9 +12,7 @@ import java.util.stream.Collectors;
 
 public class HexEditorModel {
 
-    //String dataType - формат данных - short,byte,int,float ...
-    List<Byte> data;
-
+    byte[] data;
     private int itemsPerLine = 16; // количество элементов в одной строке по умолчанию 16
     private int linesPerPage = 16; // количество строк на странице, может быть изменено пользователем. по умолчанию 10
     private int currentPageNumber = 1; // номер текущей страницы
@@ -24,17 +22,17 @@ public class HexEditorModel {
 
     private boolean signed = true; // по умолчанию отображение со знаком
     private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
-    //private File editedFile = null;
 
     public HexEditorModel() {
-        this.data = new ArrayList<>();
+        //this.data = new byte[getItemsPerPage()];
+        this.data = new byte[0];
     }
 
-    public List<Byte> getData() {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(List<Byte> data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 
@@ -126,29 +124,18 @@ public class HexEditorModel {
     }
 
 
-    private List<Byte> readPageData(int pageNumber) throws IOException {
+    private byte[] readPageData(int pageNumber) throws IOException {
 
-        List<Byte> bytesPageData = new ArrayList<>();
+
         long startPosition = (pageNumber - 1) * (long) itemsPerLine * linesPerPage * type.getBlockSize();
 
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
 
-            raf.seek(startPosition); //устанавливаем курсор на начальной позиции нужной страницы
-
+            raf.seek(startPosition);
             int bytesToRead = Math.min(getItemsPerPage() * type.getBlockSize(), (int) (fileSize - startPosition));
-            for (int i = 0; i < bytesToRead; i++) {
-                bytesPageData.add(raf.readByte());
-            }
-
-          /*  byte[] buffer = new byte[bytesToRead];
-            raf.readFully(buffer);*/
-
-
-            // List<Byte> objectPageData = BlockDataConverter.convertToTypedObjectList(bytesPageData, type); //конвертируем список байтов в нужный тип числа
-
+            byte[] bytesPageData = new byte[bytesToRead];
+            raf.readFully(bytesPageData);
             PageCache.addCachePage(new PageCache(bytesPageData, pageNumber)); //кладем прочитанную страницу в кэш
-            // System.out.println(bytesPageData.size());
-            // System.out.println(objectPageData); //ТЕСТ
             return bytesPageData;
         }
     }
@@ -179,10 +166,11 @@ public class HexEditorModel {
             throw new IllegalArgumentException("Файла с таким названием не существует.");
         }
         PageCache.clearCache(); //очистка кэша
-        data.clear(); //очистка данных текущей страницы
         this.file = file;
         this.fileSize = file.length();
         calculateTotalPages();
+       // data = null;
+       //  data = new byte[getItemsPerPage()];
     }
 
     // ОН ДОЛЖЕН БЫТЬ ДЕЙСТВИТЕЛЬНО ЗЕСЬ? В ЭТОМ КОМПОНЕНТЕ??? - Да поому что раотает с файлом

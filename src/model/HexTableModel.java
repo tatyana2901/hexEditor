@@ -3,8 +3,6 @@ package model;
 import javax.swing.table.AbstractTableModel;
 
 
-
-
 public class HexTableModel extends AbstractTableModel {
 
     private HexEditorModel hexEditorModel;
@@ -18,8 +16,8 @@ public class HexTableModel extends AbstractTableModel {
     @Override
     public int getRowCount() {
 
-     //   return hexEditorModel.getLinesPerPage(); //ЗАМЕНИЛА ОПРЕДЕЛЕНИЕ!!!
-          return (int) Math.ceil((double) hexEditorModel.getData().size()/hexEditorModel.getType().getBlockSize() / hexEditorModel.getItemsPerLine());
+        //   return hexEditorModel.getLinesPerPage(); //ЗАМЕНИЛА ОПРЕДЕЛЕНИЕ!!!
+        return (int) Math.ceil((double) hexEditorModel.getData().length / hexEditorModel.getType().getBlockSize() / hexEditorModel.getItemsPerLine());
     }
 
     @Override
@@ -37,7 +35,7 @@ public class HexTableModel extends AbstractTableModel {
             if (columnIndex == 0) {
                 // Первый столбец - адрес
                 return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
-            } else if (index >= 0 && index < hexEditorModel.getData().size()) { //ВНЕСТИ ПРАВКИ В СВЯЗИ С ИЗМЕНЕНИЕМ ХРАНЕНИЯ ВМЕСТО ОБДЖЕКТА БАЙТОВ
+            } else if (index >= 0 && index < hexEditorModel.getData().length) { //ВНЕСТИ ПРАВКИ В СВЯЗИ С ИЗМЕНЕНИЕМ ХРАНЕНИЯ ВМЕСТО ОБДЖЕКТА БАЙТОВ
                 // Данные из файла
                 return getFormattedRow(hexEditorModel.getType(), index);
             } else {
@@ -60,8 +58,9 @@ public class HexTableModel extends AbstractTableModel {
             switch (type) {
 
                 case BYTE:
+                    byte[] bytesPage = hexEditorModel.getData();
 
-                    return String.format("%02X", hexEditorModel.getData().get(index)); // Всегда без знака (hex)
+                    return String.format("%02X", bytesPage[index]); // Всегда без знака (hex)
                 case SHORT:
                     short shortValue = BlockDataConverter.getShortsFromBytes(bytesToConvert);
                     return hexEditorModel.isSigned() ? String.format("%d", shortValue) : Short.toUnsignedInt(shortValue) + "";
