@@ -1,5 +1,7 @@
 package model;
 
+import model.cache.PageCache;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -20,7 +22,7 @@ public class HexEditingService {
     //обнулить выделенные данные
     public void removeBytesWithZero(int startPosition, int length) throws IOException {
         byte[] zeros = new byte[length]; //создали пустой с нулями массив байт
-        editFile(startPosition, length, raf -> raf.write(zeros), (raf, position) -> raf.seek(position));
+        PageCache.setBytesArrayByIndex(editorModel.getCurrentPageNumber(), startPosition, zeros);
     }
 
     //удалить со сдвигом выделенные данные
@@ -52,7 +54,7 @@ public class HexEditingService {
         );
     }
 
-    public void editSingleByte(int position, byte newValue) throws IOException {
+    public void editSingleByte(int position, byte newValue) {
         if (editorModel.getType() != DataType.BYTE) {
             throw new IllegalStateException("Редактирование разрешено только для типа BYTE");
         }
@@ -62,14 +64,10 @@ public class HexEditingService {
         if (position < 0 || position >= editorModel.getFileSize()) {
             throw new IllegalArgumentException("Некорректная позиция");
         }
-
-        editFile(position, 1,
-                raf -> raf.write(newValue),
-                (raf, pos) -> raf.seek(pos)
-        );
+        PageCache.setByteByIndex(editorModel.getCurrentPageNumber(), position, newValue);
     }
 
-
+    //рассмотреть вариант чтения блоком сразу из файла при вставке со смещением и удалении со смещением
     private void editFile(int startPosition, int length, BytesWriter writer, SeekPositioner positioner) throws IOException {
 
 

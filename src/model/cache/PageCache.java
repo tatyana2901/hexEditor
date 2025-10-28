@@ -39,6 +39,42 @@ public class PageCache {
         }
     }
 
+    private static int getIndexOnCurrentPage(int pageNumber, int index) {
+        if (pageNumber > 1) {
+            return index - (pageNumber - 1) * getCachedPageByNumber(pageNumber - 1).length;
+        }
+        return index;
+    }
+
+    public static void setByteByIndex(int pageNumber, int index, byte value) {
+        byte[] cacheBytes = getCachedPageByNumber(pageNumber);
+        int indexOnPage = index;
+        if (index >= cacheBytes.length) {
+            indexOnPage = getIndexOnCurrentPage(pageNumber, index);
+        }
+        System.out.println(cacheBytes.length);
+        cacheBytes[indexOnPage] = value;
+        //  isDirty = true; // Помечаем страницу как измененную
+    }
+
+    public static void setBytesArrayByIndex(int pageNumber, int index, byte[] values) {
+
+        //ДОБАВИТЬ ПРОВЕРКУ НА ВЫХОД ЗА ГРАНИЦУ СТРАНИЦЫ!!!
+        byte[] cacheBytes = getCachedPageByNumber(pageNumber);
+        int indexOnPage = index;
+        if (index >= cacheBytes.length) {
+            indexOnPage = getIndexOnCurrentPage(pageNumber, index);
+        }
+
+        byte[] newValuesArray = Arrays.copyOf(cacheBytes, cacheBytes.length);
+
+        System.arraycopy(values, 0, newValuesArray, indexOnPage, values.length);
+
+        cache.put(pageNumber, new PageCache(newValuesArray, pageNumber));
+        //  isDirty = true; // Помечаем страницу как измененную
+    }
+
+
     public static byte[] getCachedPageByNumber(int pageNumber) {
         return cache.get(pageNumber).getPageData();
     }
