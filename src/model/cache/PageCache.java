@@ -39,7 +39,7 @@ public class PageCache {
         }
     }
 
-    private static int getIndexOnCurrentPage(int pageNumber, int index) {
+    private static int getCurrentPageIndex(int pageNumber, int index) {
         if (pageNumber > 1) {
             return index - (pageNumber - 1) * getCachedPageByNumber(pageNumber - 1).length;
         }
@@ -50,26 +50,25 @@ public class PageCache {
         byte[] cacheBytes = getCachedPageByNumber(pageNumber);
         int indexOnPage = index;
         if (index >= cacheBytes.length) {
-            indexOnPage = getIndexOnCurrentPage(pageNumber, index);
+            indexOnPage = getCurrentPageIndex(pageNumber, index);
         }
-        System.out.println(cacheBytes.length);
+     //   System.out.println(cacheBytes.length);
         cacheBytes[indexOnPage] = value;
         //  isDirty = true; // Помечаем страницу как измененную
     }
 
     public static void setBytesArrayByIndex(int pageNumber, int index, byte[] values) {
-
-        //ДОБАВИТЬ ПРОВЕРКУ НА ВЫХОД ЗА ГРАНИЦУ СТРАНИЦЫ!!!
         byte[] cacheBytes = getCachedPageByNumber(pageNumber);
         int indexOnPage = index;
         if (index >= cacheBytes.length) {
-            indexOnPage = getIndexOnCurrentPage(pageNumber, index);
+            indexOnPage = getCurrentPageIndex(pageNumber, index);
         }
-
+        int endArrayIndex = indexOnPage + values.length;
+        if (endArrayIndex > cacheBytes.length) {
+            throw new IllegalArgumentException("Вставка выходит за границы страницы.");
+        }
         byte[] newValuesArray = Arrays.copyOf(cacheBytes, cacheBytes.length);
-
         System.arraycopy(values, 0, newValuesArray, indexOnPage, values.length);
-
         cache.put(pageNumber, new PageCache(newValuesArray, pageNumber));
         //  isDirty = true; // Помечаем страницу как измененную
     }

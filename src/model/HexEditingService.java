@@ -48,10 +48,7 @@ public class HexEditingService {
         if (bytesToInsert == null || bytesToInsert.length == 0) {
             throw new IllegalArgumentException("Массив байтов для вставки не может быть пустым");
         }
-        editFile(startPosition, bytesToInsert.length,
-                raf -> raf.write(bytesToInsert),
-                (raf, position) -> raf.seek(position)
-        );
+        PageCache.setBytesArrayByIndex(editorModel.getCurrentPageNumber(), startPosition, bytesToInsert);
     }
 
     public void editSingleByte(int position, byte newValue) {
