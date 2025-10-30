@@ -23,10 +23,13 @@ public class HexEditorModel {
     private boolean signed = true; // по умолчанию отображение со знаком
     private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
 
+    private static Map<Integer, Integer> pageRowCountsSpecial = new HashMap<>(); // номер страницы - количество строк на странице
+
+
     public HexEditorModel() {
-        //this.data = new byte[getItemsPerPage()];
         this.data = new byte[0];
     }
+
 
     public byte[] getData() {
         return data;
@@ -54,9 +57,6 @@ public class HexEditorModel {
         this.signed = signed;
     }
 
-    public int getLinesPerPage() {
-        return linesPerPage;
-    }
 
     public void setLinesPerPage(int linesPerPage) {
         this.linesPerPage = linesPerPage;
@@ -110,9 +110,19 @@ public class HexEditorModel {
         return totalPages;
     }
 
-    public int getItemsPerPage() {
+  /*  public int getItemsPerPage() {
         return linesPerPage * itemsPerLine;
-    }//количество item??? на странице. Для отображения по 1 бату items = кол-во байт
+    }*///количество item??? на странице. Для отображения по 1 бату items = кол-во байт
+
+    public int getPageOffset(int pageNumber) {
+
+        if (pageRowCountsSpecial.isEmpty()) {
+            return getItemsPerPage() * (currentPageNumber - 1);
+        }
+
+
+
+    }
 
     private void calculateTotalPages() {
 
@@ -169,8 +179,8 @@ public class HexEditorModel {
         this.file = file;
         this.fileSize = file.length();
         calculateTotalPages();
-       // data = null;
-       //  data = new byte[getItemsPerPage()];
+        // data = null;
+        //  data = new byte[getItemsPerPage()];
     }
 
     // ОН ДОЛЖЕН БЫТЬ ДЕЙСТВИТЕЛЬНО ЗЕСЬ? В ЭТОМ КОМПОНЕНТЕ??? - Да поому что раотает с файлом
