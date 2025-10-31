@@ -10,6 +10,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static model.cache.PageCache.getPageOffset;
+
 public class HexEditorModel {
 
     byte[] data;
@@ -23,7 +25,7 @@ public class HexEditorModel {
     private boolean signed = true; // по умолчанию отображение со знаком
     private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
 
-    private static Map<Integer, Integer> pageRowCountsSpecial = new HashMap<>(); // номер страницы - количество строк на странице
+    //   private static Map<Integer, Integer> pageRowCountsChanged = new HashMap<>(); // номер страницы - количество строк на странице
 
 
     public HexEditorModel() {
@@ -110,19 +112,10 @@ public class HexEditorModel {
         return totalPages;
     }
 
-  /*  public int getItemsPerPage() {
+    public int getItemsPerUnchangedPage() {
         return linesPerPage * itemsPerLine;
-    }*///количество item??? на странице. Для отображения по 1 бату items = кол-во байт
+    }//количество item??? на странице. Для отображения по 1 бату items = кол-во байт*/
 
-    public int getPageOffset(int pageNumber) {
-
-        if (pageRowCountsSpecial.isEmpty()) {
-            return getItemsPerPage() * (currentPageNumber - 1);
-        }
-
-
-
-    }
 
     private void calculateTotalPages() {
 
@@ -142,7 +135,7 @@ public class HexEditorModel {
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
 
             raf.seek(startPosition);
-            int bytesToRead = Math.min(getItemsPerPage() * type.getBlockSize(), (int) (fileSize - startPosition));
+            int bytesToRead = Math.min(getItemsPerUnchangedPage() * type.getBlockSize(), (int) (fileSize - startPosition));
             byte[] bytesPageData = new byte[bytesToRead];
             raf.readFully(bytesPageData);
             PageCache.addCachePage(new PageCache(bytesPageData, pageNumber)); //кладем прочитанную страницу в кэш
@@ -254,12 +247,11 @@ public class HexEditorModel {
 
         // Преобразуем координаты таблицы в позиции в файле
         int itemsPerLine = getItemsPerLine();
-        int itemsPerPage = getItemsPerPage();
-        int pageOffset = (currentPageNumber - 1) * itemsPerPage;
-
+        //  int itemsPerPage = getItemsPerPage();
+        //  int pageOffset = (currentPageNumber - 1) * itemsPerPage;
+        int pageOffset = getPageOffset(currentPageNumber, getItemsPerUnchangedPage());
         // Начальная позиция в файле
         int startPos = minRow * itemsPerLine + (minCol - 1) + pageOffset;
-
         // Конечная позиция в файле
         int endPos = maxRow * itemsPerLine + (maxCol - 1) + pageOffset;
 
@@ -267,8 +259,8 @@ public class HexEditorModel {
         int length = (endPos - startPos) + 1;
 
         // Проверяем, что позиции в пределах файла
-        if (startPos >= fileSize) {
-            throw new IllegalArgumentException("ыход позиции за границу файла.");
+        if (startPos > fileSize) {
+            throw new IllegalArgumentException("Выход позиции за границу файла.");
         }
 
         // Корректируем длину, если выделение выходит за пределы файла

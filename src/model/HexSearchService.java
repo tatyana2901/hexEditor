@@ -48,8 +48,9 @@ public class HexSearchService {
         if (index >= 0 && index < editorModel.getData().length) {
             return editorModel.getData()[index];
         }
-        System.err.println("Выход за пределы значений индексов таблицы.");
-        throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
+        return null;
+       /* System.err.println("Выход за пределы значений индексов таблицы.");
+        throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");*/
     }
 
 
@@ -67,15 +68,18 @@ public class HexSearchService {
     public int getPageForPosition(int position) {
         int itemsPerPage = editorModel.getItemsPerPage();
         return (position / itemsPerPage) + 1;
+
     }
 
 
     public int[] getTableCoordinatesForPosition(int position) {
         int itemsPerPage = editorModel.getItemsPerPage();
+
         int localPosition = position % itemsPerPage;
         int row = localPosition / editorModel.getItemsPerLine();
         int col = (localPosition % editorModel.getItemsPerLine()) + 1;
         return new int[]{row, col};
+
     }
 
 

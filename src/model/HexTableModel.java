@@ -1,6 +1,10 @@
 package model;
 
+import model.cache.PageCache;
+
 import javax.swing.table.AbstractTableModel;
+
+import static model.cache.PageCache.getPageOffset;
 
 
 public class HexTableModel extends AbstractTableModel {
@@ -34,7 +38,8 @@ public class HexTableModel extends AbstractTableModel {
 
             if (columnIndex == 0) {
                 // Первый столбец - адрес
-                return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
+                //  return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
+                return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + getPageOffset(hexEditorModel.getCurrentPageNumber(), hexEditorModel.getItemsPerUnchangedPage()))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
             } else if (index >= 0 && index < hexEditorModel.getData().length) {
                 // Данные из файла
                 return getFormattedRow(hexEditorModel.getType(), index);
