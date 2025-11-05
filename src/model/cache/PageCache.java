@@ -36,6 +36,13 @@ public class PageCache {
         return cache.values().stream().anyMatch(x -> x.isDirty);
     }
 
+    public static byte[] getCachedPageByNumber(int pageNumber) {
+        if (pageNumber <= 0) {
+            throw new IllegalArgumentException("Номер страницы должен быть положительным.");
+        }
+        return cache.get(pageNumber).getPageData();
+    }
+
     public static int getPageOffset(int pageNumber, int unChangedPageItemsCount) {
 
 
@@ -73,9 +80,7 @@ public class PageCache {
 
     public static void setByteByIndex(int pageNumber, int index, byte value, int unChangedPageItemsCount) {
 
-      if(pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0)
-
-        {
+        if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0) {
             byte[] cacheBytes = getCachedPageByNumber(pageNumber);
             int indexOnPage = getIndexOnCurrentPage(pageNumber, index, unChangedPageItemsCount);
             //   System.out.println(cacheBytes.length);
@@ -85,8 +90,7 @@ public class PageCache {
 
     public static void setBytesArrayByIndex(int pageNumber, int index, byte[] values, int unChangedPageItemsCount) {
 
-       if(pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0 && values != null)
-        {
+        if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0 && values != null) {
             byte[] originalPage = getCachedPageByNumber(pageNumber);
             int indexOnPage = getIndexOnCurrentPage(pageNumber, index, unChangedPageItemsCount);
 
@@ -151,13 +155,6 @@ public class PageCache {
 
     }
 
-
-    public static byte[] getCachedPageByNumber(int pageNumber) {
-        if (pageNumber <= 0) {
-            throw new IllegalArgumentException("Номер страницы должен быть положительным.");
-        }
-        return cache.get(pageNumber).getPageData();
-    }
 
     public static void clearCache() {
         cache.clear();

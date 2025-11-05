@@ -431,8 +431,8 @@ public class HexEditorController {
 
     private void setupSearchListeners() {
         view.addSearchListener(e -> performSearch());
-        view.addNextSearchResultListener(e -> getNextSearchItemResult());
-        view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
+        /* view.addNextSearchResultListener(e -> getNextSearchItemResult());*/
+        //  view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
     }
 
     private void performSearch() {
@@ -466,7 +466,7 @@ public class HexEditorController {
     private void highlightSearchResult() {
         try {
             int position = searchService.getCurrentPosition();
-            int targetPage = searchService.getPageForPosition(position);
+            int targetPage = searchService.getCurrentSearchPage(); //берет из списка значение по индексу (соответствует номерц текущей позиции)
             displayPage(targetPage);
             if (position >= 0) {
                 int[] startCoords = searchService.getTableCoordinatesForPosition(position);
@@ -478,7 +478,7 @@ public class HexEditorController {
         }
     }
 
-    private void getNextSearchItemResult() {
+  /*  private void getNextSearchItemResult() {
 
         try {
             searchService.increaseCurrentSearchIndex();
@@ -496,7 +496,7 @@ public class HexEditorController {
         } catch (Exception e) {
             view.showErrorDialog("Ошибка перехода к предыдущему результату поиска:  " + e.getMessage(), "Ошибка");
         }
-    }
+    }*/
 
     public void displaySearchResultOnPage() {
         highlightSearchResult();
@@ -508,7 +508,7 @@ public class HexEditorController {
         if (searchService.getResultsCount() > 0) {
             view.setSearchStatus(
                     String.format("Найдено: %d, Текущее: %d",
-                            searchService.getResultsCount(), searchService.getCurrentSearchIndex() + 1)
+                            searchService.getResultsCount(), searchService.getCurrentResultIndex() + 1)
             );
         }
     }

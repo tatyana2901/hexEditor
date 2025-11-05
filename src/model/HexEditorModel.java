@@ -10,7 +10,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static model.cache.PageCache.getPageOffset;
+import static model.cache.PageCache.*;
 
 public class HexEditorModel {
 
@@ -177,45 +177,49 @@ public class HexEditorModel {
     }
 
     // ОН ДОЛЖЕН БЫТЬ ДЕЙСТВИТЕЛЬНО ЗЕСЬ? В ЭТОМ КОМПОНЕНТЕ??? - Да поому что раотает с файлом
-    public List<Integer> findBytes(byte[] searchPattern, byte[] mask) throws IOException {
-        List<Integer> positions = new ArrayList<>();
-
+    public int[] findBytes(byte[] searchPattern, byte[] mask) throws IOException {
         if (file == null) {
             throw new IllegalStateException("Файл не открыт");
         }
+        long totalPagesAmount = getTotalPages();
+        //поиск первого результата по страницам
+        for (int p = 1; p <= totalPagesAmount; p++) {
 
-        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
-            byte[] buffer = new byte[searchPattern.length];
-            long fileSize = raf.length();
-
-            for (long i = 0; i <= fileSize - searchPattern.length; i++) { //i - номер байта в файле
-                raf.seek(i);
-                raf.readFully(buffer);
+            if (!isPageInCache(p)) {
+                addCachePage(new PageCache(readPageData(p), p));
+            }
+            byte[] pageBytes = getCachedPageByNumber(p);
+            long pageSize = pageBytes.length;
+            //добавить условие на длину страницы если она меньше длины поискового паттерна после редактирования напимер
+            for (int i = 0; i <= pageSize - searchPattern.length; i++) { //i - номер байта на странице
 
                 boolean match = true;
+                int copyOfI = i;
                 for (int j = 0; j < searchPattern.length; j++) {
                     if (mask != null) {
                         // Применяем маску: учитываем только биты, где mask[j] != 0
-                        if ((buffer[j] & mask[j]) != (searchPattern[j] & mask[j])) {
+                        if ((pageBytes[i++] & mask[j]) != (searchPattern[j] & mask[j])) {
                             match = false;
+                            i = copyOfI; //возвращаем i после выхода из цикла
                             break;
                         }
                     } else {
+                        System.out.println("i" + " " + i);
                         // Без маски - точное совпадение
-                        if (buffer[j] != searchPattern[j]) {
+                        if (pageBytes[i++] != searchPattern[j]) {
                             match = false;
+                            i = copyOfI; //возвращаем i после выхода из цикла
                             break;
                         }
                     }
                 }
-
                 if (match) {
-                    positions.add((int) i); //i - индекс байта, с которого начинется совпадение начала совпадения
+                    System.out.println(p + " " + i);
+                    return new int[]{p, copyOfI}; //индекс байта (byte [] из кэша )на странице, с которого начинется совпадение после первого сопадения поиск прекращается. продолжение поиска только после нажатия кнпки следующий
                 }
             }
         }
-
-        return positions;
+        return null;
     }
 
 

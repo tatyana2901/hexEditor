@@ -2,33 +2,38 @@ package model;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private List<Integer> searchResults; //список позиций найденных байтов в файле (индексов байта)
-    private int currentSearchIndex; // индекс просматриваемого байта в данный момент для отображения в результатах поиска: 1,2,3,4,5
+    private Map<Integer, Integer> searchResults; //список позиций найденных байтов в файле (страница кэша - индекс найденного байта на странице)
+    private int currentSearchPage; // страница текущего резальтат поиска просматриваемого байта в данный момент для отображения в результатах поиска: 1,2,3,4,5
 
 
     public HexSearchService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
-        this.searchResults = new ArrayList<>();
-        this.currentSearchIndex = -1; // номер просматриваемого найденного элемента. Например, 1 из 5 или 2 из 5
+        this.searchResults = new HashMap<>();
+        this.currentSearchPage = -1; // номер просматриваемого найденного элемента. Например, 1 из 5 или 2 из 5
     }
 
     public int getResultsCount() {
         return searchResults.size();
     }
 
-    public int getCurrentSearchIndex() {
-        return currentSearchIndex;
+    public int getCurrentSearchPage() {
+        return currentSearchPage;
     }
 
     public int getCurrentPosition() {
-        return searchResults.get(currentSearchIndex);
+        return searchResults.get(currentSearchPage);
     }
 
-    public void increaseCurrentSearchIndex() {
+    public long getCurrentResultIndex() {
+        return searchResults.keySet().stream().filter(x -> x <= currentSearchPage).count();
+    }
+
+/*    public void increaseCurrentSearchIndex() {
 
         if (currentSearchIndex != searchResults.size() - 1)
             currentSearchIndex++;
@@ -38,7 +43,7 @@ public class HexSearchService {
 
         if (currentSearchIndex > 0)
             currentSearchIndex--;
-    }
+    }*/
 
 
     public Object getValueAtTableCoordinates(int row, int column) {
@@ -59,25 +64,36 @@ public class HexSearchService {
 
         byte[] mask = hexMask.isEmpty() ? null : HexUtils.parseHexBytes(hexMask);
 
-        searchResults = editorModel.findBytes(pattern, mask);
-        currentSearchIndex = searchResults.isEmpty() ? -1 : 0;
+        int[] result = editorModel.findBytes(pattern, mask); //индекс байта на странице кэша
+        if (result != null) {
+            searchResults.put(result[0], result[1]);
+            currentSearchPage = result[0];
+        }
+
 
     }
+/*
 
-
+    //ИСПРАВИТЬ НА КЭШ!!!
     public int getPageForPosition(int position) {
-        int itemsPerPage = editorModel.getItemsPerPage();
-        return (position / itemsPerPage) + 1;
+      */
+/*  int itemsPerPage = editorModel.getItemsPerUnchangedPage();
+        return (position / itemsPerPage) + 1;*//*
+
+
+        searchResults.get()
 
     }
+*/
 
 
     public int[] getTableCoordinatesForPosition(int position) {
-        int itemsPerPage = editorModel.getItemsPerPage();
-
-        int localPosition = position % itemsPerPage;
-        int row = localPosition / editorModel.getItemsPerLine();
-        int col = (localPosition % editorModel.getItemsPerLine()) + 1;
+        //  int itemsPerPage = editorModel.getItemsPerUnchangedPage();
+        // int localPosition = position % itemsPerPage;
+        /*int row = localPosition / editorModel.getItemsPerLine();
+        int col = (localPosition % editorModel.getItemsPerLine()) + 1;*/
+        int row = position / editorModel.getItemsPerLine();
+        int col = (position % editorModel.getItemsPerLine()) + 1;
         return new int[]{row, col};
 
     }
