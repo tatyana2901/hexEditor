@@ -1,20 +1,26 @@
 package model;
 
+import model.cache.PageCache;
+
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
+
+import static model.cache.PageCache.*;
 
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private Map<Integer, Integer> searchResults; //список позиций найденных байтов в файле (страница кэша - индекс найденного байта на странице)
-    private int currentSearchPage; // страница текущего резальтат поиска просматриваемого байта в данный момент для отображения в результатах поиска: 1,2,3,4,5
-
+    private List<SearchResult> searchResults;
+    private int currentSearchPage;
+    private int currentSearchResultIndex;
+    private String pattern;
+    private String mask;
 
     public HexSearchService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
-        this.searchResults = new HashMap<>();
-        this.currentSearchPage = -1; // номер просматриваемого найденного элемента. Например, 1 из 5 или 2 из 5
+        this.searchResults = new ArrayList<>();
+        this.currentSearchPage = -1;
+        this.currentSearchResultIndex = -1;
     }
 
     public int getResultsCount() {
@@ -26,25 +32,31 @@ public class HexSearchService {
     }
 
     public int getCurrentPosition() {
-        return searchResults.get(currentSearchPage);
+
+        return searchResults.get(currentSearchResultIndex).pageOffset;
     }
 
-    public long getCurrentResultIndex() {
-        return searchResults.keySet().stream().filter(x -> x <= currentSearchPage).count();
+    public int getCurrentResultIndex() {
+        return currentSearchResultIndex;
     }
 
-/*    public void increaseCurrentSearchIndex() {
-
-        if (currentSearchIndex != searchResults.size() - 1)
-            currentSearchIndex++;
+    public void increaseCurrentSearchResultIndex() {
+        if (currentSearchResultIndex < searchResults.size() - 1)
+            currentSearchResultIndex++;
     }
-
     public void decreaseCurrentSearchIndex() {
 
-        if (currentSearchIndex > 0)
-            currentSearchIndex--;
-    }*/
+        if (currentSearchResultIndex > 0)
+            currentSearchResultIndex--;
+    }
 
+    public void setMask(String mask) {
+        this.mask = mask;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
+    }
 
     public Object getValueAtTableCoordinates(int row, int column) {
         if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
@@ -54,48 +66,88 @@ public class HexSearchService {
             return editorModel.getData()[index];
         }
         return null;
-       /* System.err.println("Выход за пределы значений индексов таблицы.");
-        throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");*/
     }
 
 
-    public void searchBytes(String hexPattern, String hexMask) throws IOException {
-        byte[] pattern = HexUtils.parseHexBytes(hexPattern);
+    public void searchBytes(int pageNumberToStart) throws IOException {
 
-        byte[] mask = hexMask.isEmpty() ? null : HexUtils.parseHexBytes(hexMask);
+        byte[] pattern = HexUtils.parseHexBytes(this.pattern);
+        byte[] mask = this.mask.isEmpty() ? null : HexUtils.parseHexBytes(this.mask);
+        findBytes(pattern, mask,pageNumberToStart);
 
-        int[] result = editorModel.findBytes(pattern, mask); //индекс байта на странице кэша
-        if (result != null) {
-            searchResults.put(result[0], result[1]);
-            currentSearchPage = result[0];
+    }
+
+    private void findBytes(byte[] searchPattern, byte[] mask, int pageNumberToStart) throws IOException {
+        if (editorModel.getFile() == null) {
+            throw new IllegalStateException("Файл не открыт");
+        }
+        long totalPagesAmount = editorModel.getTotalPages();
+        for (int p = pageNumberToStart; p <= totalPagesAmount; p++) {
+            int searchResultsCount = getResultsCount();
+
+            if (!isPageInCache(p)) {
+                addCachePage(new PageCache(editorModel.readPageData(p), p));
+            }
+            byte[] pageBytes = getCachedPageByNumber(p);
+            long pageSize = pageBytes.length;
+
+            for (int i = 0; i <= pageSize - searchPattern.length; i++) { //i - номер байта на странице
+
+                boolean match = true;
+                int copyOfI = i;
+                for (int j = 0; j < searchPattern.length; j++) {
+                    if (mask != null) {
+                        if ((pageBytes[i++] & mask[j]) != (searchPattern[j] & mask[j])) {
+                            match = false;
+                            i = copyOfI;
+                            break;
+                        }
+                    } else {
+                        if (pageBytes[i++] != searchPattern[j]) {
+                            match = false;
+                            i = copyOfI;
+                            break;
+                        }
+                    }
+                }
+                if (match) {
+                    searchResults.add(new SearchResult(p, copyOfI));
+                    currentSearchPage = p;
+                }
+            }
+            if (searchResultsCount < getResultsCount()) {
+                currentSearchResultIndex++;
+                break;
+            }
+
         }
 
-
     }
-/*
-
-    //ИСПРАВИТЬ НА КЭШ!!!
-    public int getPageForPosition(int position) {
-      */
-/*  int itemsPerPage = editorModel.getItemsPerUnchangedPage();
-        return (position / itemsPerPage) + 1;*//*
-
-
-        searchResults.get()
-
-    }
-*/
-
 
     public int[] getTableCoordinatesForPosition(int position) {
-        //  int itemsPerPage = editorModel.getItemsPerUnchangedPage();
-        // int localPosition = position % itemsPerPage;
-        /*int row = localPosition / editorModel.getItemsPerLine();
-        int col = (localPosition % editorModel.getItemsPerLine()) + 1;*/
         int row = position / editorModel.getItemsPerLine();
         int col = (position % editorModel.getItemsPerLine()) + 1;
         return new int[]{row, col};
 
+    }
+
+
+    public void clearSearchResults() {
+        searchResults.clear();
+        currentSearchResultIndex = -1;
+        currentSearchPage = -1;
+        pattern = null;
+        mask = null;
+    }
+
+    class SearchResult {
+        private int pageNumber;
+        private int pageOffset;
+
+        public SearchResult(int pageNumber, int pageOffset) {
+            this.pageNumber = pageNumber;
+            this.pageOffset = pageOffset;
+        }
     }
 
 

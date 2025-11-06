@@ -99,10 +99,9 @@ public class HexEditorController {
         int[] selectedColumns = view.getSelectedColumns();
 
         if (selectedRows.length > 0 && selectedColumns.length > 0) {
-            return editorModel.getSelectedBytesRange(selectedRows, selectedColumns);
+            return editingService.getSelectedBytesRange(selectedRows, selectedColumns);
         }
         return null;
-
 
     }
 
@@ -119,6 +118,7 @@ public class HexEditorController {
 
     private void executeEditingOperation(EditingOperation editingOperation, String successMessage) {
         try {
+            searchService.clearSearchResults();
             editingOperation.execute();
             displayPage(editorModel.getCurrentPageNumber());
             view.showInfoDialog(successMessage, "Успех");
@@ -377,7 +377,6 @@ public class HexEditorController {
     private void setDataType(DataType dataType) {
         try {
             editorModel.setType(dataType);
-            // Включаем/выключаем опции "со знаком/без знака" в зависимости от типа данных
             boolean isIntegerType = (dataType == DataType.SHORT || dataType == DataType.INTEGER || dataType == DataType.LONG);
             view.setIntegerSignOptionsEnabled(isIntegerType);
             displayPage(1);
@@ -431,8 +430,8 @@ public class HexEditorController {
 
     private void setupSearchListeners() {
         view.addSearchListener(e -> performSearch());
-        /* view.addNextSearchResultListener(e -> getNextSearchItemResult());*/
-        //  view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
+        view.addNextSearchResultListener(e -> getNextSearchItemResult());
+          view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
     }
 
     private void performSearch() {
@@ -443,6 +442,8 @@ public class HexEditorController {
                 view.showErrorDialog("Поиск байт доступен только в режиме отображения BYTE", "Ошибка");
                 return;
             }
+            searchService.clearSearchResults();
+
             String pattern = view.getSearchPattern();
             String mask = view.getSearchMask();
 
@@ -450,9 +451,13 @@ public class HexEditorController {
                 return;
             }
 
-            searchService.searchBytes(pattern, mask);
+            searchService.setMask(mask);
+            searchService.setPattern(pattern);
+
+            searchService.searchBytes(1);
             if (searchService.getResultsCount() == 0) {
                 view.showInfoDialog("Ничего не найдено", "NoResult");
+
             } else {
                 highlightSearchResult();
                 updateSearchStatus();
@@ -465,7 +470,7 @@ public class HexEditorController {
 
     private void highlightSearchResult() {
         try {
-            int position = searchService.getCurrentPosition();
+            int position = searchService.getCurrentPosition(); //смещение найденного байта
             int targetPage = searchService.getCurrentSearchPage(); //берет из списка значение по индексу (соответствует номерц текущей позиции)
             displayPage(targetPage);
             if (position >= 0) {
@@ -478,16 +483,28 @@ public class HexEditorController {
         }
     }
 
-  /*  private void getNextSearchItemResult() {
-
+    private void getNextSearchItemResult() {
         try {
-            searchService.increaseCurrentSearchIndex();
+
+            if (searchService.getCurrentResultIndex() + 1 == searchService.getResultsCount()) {
+                //запустить новый поиск
+                if (searchService.getCurrentSearchPage()<editorModel.getTotalPages()) {
+                    searchService.searchBytes(searchService.getCurrentSearchPage() + 1);
+                }
+
+            } else {
+
+                searchService.increaseCurrentSearchResultIndex();
+
+            }
             displaySearchResultOnPage();
+
         } catch (Exception e) {
             view.showErrorDialog("Ошибка перехода к следующему результату поиска: " + e.getMessage(), "Ошибка");
         }
-    }
 
+
+    }
     private void getPrevSearchItemResult() {
 
         try {
@@ -496,7 +513,7 @@ public class HexEditorController {
         } catch (Exception e) {
             view.showErrorDialog("Ошибка перехода к предыдущему результату поиска:  " + e.getMessage(), "Ошибка");
         }
-    }*/
+    }
 
     public void displaySearchResultOnPage() {
         highlightSearchResult();

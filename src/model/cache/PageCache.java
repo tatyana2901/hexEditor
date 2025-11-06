@@ -5,9 +5,9 @@ import java.util.*;
 public class PageCache {
 
     private byte[] pageData;
-    private int pageNumber; //номер страницы
+    private int pageNumber;
     private boolean isDirty;
-    private static Map<Integer, PageCache> cache = new HashMap<>(); //все страницы файла в кэше
+    private static Map<Integer, PageCache> cache = new HashMap<>();
 
     public PageCache(byte[] pageData, int pageNumber) {
         if (pageNumber > 0 && pageData != null) {
@@ -72,8 +72,7 @@ public class PageCache {
 
     private static int getIndexOnCurrentPage(int pageNumber, int index, int unChangedPageItemsCount) {
         if (pageNumber > 1) {
-            //   return index - (pageNumber - 1) * getCachedPageByNumber(pageNumber - 1).length; //здесь откидываем индексы всех предыдущих страниц
-            return index - getPageOffset(pageNumber, unChangedPageItemsCount); //здесь откидываем индексы всех предыдущих страниц
+            return index - getPageOffset(pageNumber, unChangedPageItemsCount);
         }
         return index;
     }
@@ -83,7 +82,6 @@ public class PageCache {
         if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0) {
             byte[] cacheBytes = getCachedPageByNumber(pageNumber);
             int indexOnPage = getIndexOnCurrentPage(pageNumber, index, unChangedPageItemsCount);
-            //   System.out.println(cacheBytes.length);
             cacheBytes[indexOnPage] = value;
         }
     }
@@ -113,13 +111,8 @@ public class PageCache {
             byte[] newPage = new byte[cachedPageSize + values.length];
             int indexOnPage = getIndexOnCurrentPage(pageNumber, index, unChangedPageItemsCount);
 
-            // Копируем часть до позиции вставки
             System.arraycopy(originalPage, 0, newPage, 0, indexOnPage);
-
-            // Копируем вставляемый массив
             System.arraycopy(values, 0, newPage, indexOnPage, values.length);
-
-            // Копируем оставшуюся часть исходного массива
             System.arraycopy(originalPage, indexOnPage, newPage,
                     indexOnPage + values.length, originalPage.length - indexOnPage);
 
@@ -139,10 +132,8 @@ public class PageCache {
             byte[] newPage = new byte[cachedPageSize - length];
             int indexOnPage = getIndexOnCurrentPage(pageNumber, index, unChangedPageItemsCount);
 
-            // Копируем часть до позиции вставки
-            System.arraycopy(originalPage, 0, newPage, 0, indexOnPage);
 
-            // Копируем оставшуюся часть исходного массива
+            System.arraycopy(originalPage, 0, newPage, 0, indexOnPage);
             System.arraycopy(originalPage, indexOnPage + length, newPage,
                     indexOnPage, originalPage.length - indexOnPage - length);
 
@@ -152,9 +143,7 @@ public class PageCache {
 
         }
 
-
     }
-
 
     public static void clearCache() {
         cache.clear();
