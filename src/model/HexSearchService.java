@@ -10,7 +10,7 @@ import static model.cache.PageCache.*;
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private List<Integer> searchResults;
+    private List<SearchResult> searchResults;
     private int currentSearchPage;
     private int currentSearchResultIndex;
     private String pattern;
@@ -33,7 +33,7 @@ public class HexSearchService {
 
     public int getCurrentPosition() {
 
-        return searchResults.get(currentSearchResultIndex);
+        return searchResults.get(currentSearchResultIndex).pageOffset;
     }
 
     public int getCurrentResultIndex() {
@@ -41,13 +41,20 @@ public class HexSearchService {
     }
 
     public void increaseCurrentSearchResultIndex() {
-        if (currentSearchResultIndex < searchResults.size() - 1)
+        if (currentSearchResultIndex < searchResults.size() - 1) {
             currentSearchResultIndex++;
+            currentSearchPage = searchResults.get(currentSearchResultIndex).pageNumber;
+        }
     }
+
     public void decreaseCurrentSearchIndex() {
 
-        if (currentSearchResultIndex > 0)
+        if (currentSearchResultIndex > 0) {
             currentSearchResultIndex--;
+            currentSearchPage = searchResults.get(currentSearchResultIndex).pageNumber;
+        }
+
+
     }
 
     public void setMask(String mask) {
@@ -59,13 +66,11 @@ public class HexSearchService {
     }
 
 
-
-
     public void searchBytes(int pageNumberToStart) throws IOException {
 
         byte[] pattern = HexUtils.parseHexBytes(this.pattern);
         byte[] mask = this.mask.isEmpty() ? null : HexUtils.parseHexBytes(this.mask);
-        findBytes(pattern, mask,pageNumberToStart);
+        findBytes(pattern, mask, pageNumberToStart);
 
     }
 
@@ -103,7 +108,7 @@ public class HexSearchService {
                     }
                 }
                 if (match) {
-                    searchResults.add(copyOfI);
+                    searchResults.add(new SearchResult(p, copyOfI));
                     currentSearchPage = p;
                 }
             }
@@ -131,6 +136,7 @@ public class HexSearchService {
         pattern = null;
         mask = null;
     }
+
     class SearchResult {
         private int pageNumber;
         private int pageOffset;
