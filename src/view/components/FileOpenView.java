@@ -36,10 +36,6 @@ public class FileOpenView {
         return fileSelectionPanel;
     }
 
-    public JLabel getLabel() {
-        return label;
-    }
-
     public void addOpenFileListener(ActionListener listener) {  //метод добавления слушаля к кнопке открытия файла(конкретная реализация определена в контроллере)
         openFileButton.addActionListener(listener);
     }

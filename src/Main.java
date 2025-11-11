@@ -15,19 +15,18 @@ public class Main {
         //Создание UI - элементов во view
         HexTableModel tableModel = new HexTableModel(editorModel);
 
-        PaginationPanel paginationPanel = new PaginationPanel();
+
         LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
         BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
         LabelInfoPanel labelInfoPanel = new LabelInfoPanel();
-        SearchPanel searchPanel = new SearchPanel();
         HexSearchService searchService = new HexSearchService(editorModel);
         EditPanel editPanel = new EditPanel();
         TableContextMenu tableContextMenu = new TableContextMenu();
         HexEditingService editingService = new HexEditingService(editorModel);
 
 
-        HexEditorView view = new HexEditorView(tableModel, paginationPanel, settingsPanel,
-                blockBytesMenuBar, labelInfoPanel, searchPanel, editPanel, tableContextMenu);
+        HexEditorView view = new HexEditorView(tableModel, settingsPanel,
+                blockBytesMenuBar, labelInfoPanel, editPanel, tableContextMenu);
 
         new HexEditorController(view, editorModel, searchService, editingService);
 

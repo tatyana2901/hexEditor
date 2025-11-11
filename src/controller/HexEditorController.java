@@ -2,6 +2,7 @@ package controller;
 
 import model.*;
 import view.HexEditorView;
+import view.components.SearchView;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,22 +12,23 @@ import java.util.function.BiConsumer;
 public class HexEditorController {
     private HexEditorView view;
     private HexEditorModel editorModel;
-    private HexSearchService searchService;
     private HexEditingService editingService;
     private DisplayHelper helper;
+    private SelectionService selectionService;
+
 
     public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexSearchService searchService, HexEditingService editingService) {
         this.view = view;
         this.editorModel = editorModel;
-        this.searchService = searchService;
+
         this.editingService = editingService;
-        this.helper = new DisplayHelper(view, editorModel);
+        this.helper = new DisplayHelper(editorModel, view);
 
-
+        selectionService = new SelectionService(editorModel);
+        new SearchController(view.getSearchView(), editorModel, helper, view);
         new FileOpenController(view.getFileOpenView(), editorModel, helper, view);
-        view.addNextPageButtonListener(e -> nextPage());
-        view.addPrevPageButtonListener(e -> prevPage());
-        view.addLoadPageButtonListener(e -> goToInputNumberPage());
+        new PaginationController(view.getPaginationView(), editorModel, helper, view);
+
         view.addItemsPerLineSpinnerListener(e -> changeItemsPerLine());
         view.addLinesPerPageSpinnerListener(e -> changeLinesPerPage());
 
@@ -38,7 +40,7 @@ public class HexEditorController {
         view.addUnsignedItemListener(e -> setSigned(false));
 
         setupTableSelectionListener();
-        setupSearchListeners();
+
 
         view.addEnableEditListener(e -> activateEditMode());
         view.addChangeByteValueListener(e -> changeSingleByteValue());
@@ -121,7 +123,6 @@ public class HexEditorController {
 
     private void executeEditingOperation(EditingOperation editingOperation, String successMessage) {
         try {
-            searchService.clearSearchResults();
             editingOperation.execute();
             helper.displayPage(editorModel.getCurrentPageNumber());
             view.showInfoDialog(successMessage, "Успех");
@@ -271,49 +272,6 @@ public class HexEditorController {
     }
 
 
-    private void nextPage() {
-        try {
-            if (editorModel.getCurrentPageNumber() < editorModel.getTotalPages()) {
-                helper.displayPage(editorModel.getCurrentPageNumber() + 1);
-            }
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-    }
-
-
-    private void prevPage() {
-        try {
-            if (editorModel.getCurrentPageNumber() > 1) {
-                helper.displayPage(editorModel.getCurrentPageNumber() - 1);
-            }
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-    }
-
-
-    private void goToInputNumberPage() {
-        try {
-            int inputPageNumber = view.getPageNumberInput();
-            if (inputPageNumber > editorModel.getTotalPages()) {
-                view.showErrorDialog("Введите номер страницы от 1 до " + editorModel.getTotalPages(), "Ошибка");
-                return;
-            }
-            if (inputPageNumber > 0 || inputPageNumber <= editorModel.getTotalPages()) {
-                helper.displayPage(inputPageNumber);
-            }
-        } catch (NumberFormatException ex) {
-
-            view.showErrorDialog("Неправильный формат номера страницы.", "Ошибка");
-
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) { //так можно делать?
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-
-    }
-
-
     private void changeItemsPerLine() {
         try {
             int itemsPerLine = view.getItemsPerLineInput();
@@ -389,7 +347,7 @@ public class HexEditorController {
 
         if (selectedRow >= 0 && selectedColumn > 0) {
             try {
-                Object value = searchService.getValueAtTableCoordinates(selectedRow, selectedColumn);
+                Object value = selectionService.getValueAtTableCoordinates(selectedRow, selectedColumn);
 
                 if (value instanceof Byte) {
                     byte byteValue = (Byte) value;
@@ -407,108 +365,7 @@ public class HexEditorController {
         }
     }
 
-    private void setupSearchListeners() {
-        view.addSearchListener(e -> performSearch());
-        view.addNextSearchResultListener(e -> getNextSearchItemResult());
-        view.addPrevSearchResultListener(e -> getPrevSearchItemResult());
-    }
 
-    private void performSearch() {
-        try {
-
-            if (editorModel.getType() != DataType.BYTE) {
-
-                view.showErrorDialog("Поиск байт доступен только в режиме отображения BYTE", "Ошибка");
-                return;
-            }
-            searchService.clearSearchResults();
-
-            String pattern = view.getSearchPattern();
-            String mask = view.getSearchMask();
-
-            if (pattern.isEmpty()) {
-                return;
-            }
-
-            searchService.setMask(mask);
-            searchService.setPattern(pattern);
-
-            searchService.searchBytes(1);
-            if (searchService.getResultsCount() == 0) {
-                view.showInfoDialog("Ничего не найдено", "NoResult");
-
-            } else {
-                highlightSearchResult();
-                updateSearchStatus();
-            }
-
-        } catch (Exception ex) {
-            view.showErrorDialog("Ошибка поиска: " + ex.getMessage(), "Ошибка");
-        }
-    }
-
-    private void highlightSearchResult() {
-        try {
-            int position = searchService.getCurrentPosition(); //смещение найденного байта
-            int targetPage = searchService.getCurrentSearchPage(); //берет из списка значение по индексу (соответствует номерц текущей позиции)
-            helper.displayPage(targetPage);
-            if (position >= 0) {
-                int[] startCoords = searchService.getTableCoordinatesForPosition(position);
-                view.selectTableCell(startCoords[0], startCoords[1]);
-            }
-        } catch (IOException e) {
-            view.showErrorDialog("Ошибка перехода: " + e.getMessage(), "Ошибка");
-
-        }
-    }
-
-    private void getNextSearchItemResult() {
-        try {
-
-            if (searchService.getCurrentResultIndex() + 1 == searchService.getResultsCount()) {
-                //запустить новый поиск
-                if (searchService.getCurrentSearchPage() < editorModel.getTotalPages()) {
-                    searchService.searchBytes(searchService.getCurrentSearchPage() + 1);
-                }
-
-            } else {
-
-                searchService.increaseCurrentSearchResultIndex();
-
-            }
-            displaySearchResultOnPage();
-
-        } catch (Exception e) {
-            view.showErrorDialog("Ошибка перехода к следующему результату поиска: " + e.getMessage(), "Ошибка");
-        }
-
-
-    }
-
-    private void getPrevSearchItemResult() {
-
-        try {
-            searchService.decreaseCurrentSearchIndex();
-            displaySearchResultOnPage();
-        } catch (Exception e) {
-            view.showErrorDialog("Ошибка перехода к предыдущему результату поиска:  " + e.getMessage(), "Ошибка");
-        }
-    }
-
-    public void displaySearchResultOnPage() {
-        highlightSearchResult();
-        updateSearchStatus();
-    }
-
-
-    private void updateSearchStatus() {
-        if (searchService.getResultsCount() > 0) {
-            view.setSearchStatus(
-                    String.format("Найдено: %d, Текущее: %d",
-                            searchService.getResultsCount(), searchService.getCurrentResultIndex() + 1)
-            );
-        }
-    }
 }
 
 @FunctionalInterface

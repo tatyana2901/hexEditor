@@ -45,6 +45,7 @@ public class BlockDataConverter {
     }
 
     private static void validateByteArraySize(byte[] byteArray, int expectedSize) {
+        System.out.println(byteArray.length);
         if (byteArray.length < expectedSize) {
             throw new IllegalArgumentException("Недостаточно байт для укрупнения выборки байт ");
         }

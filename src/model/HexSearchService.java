@@ -10,7 +10,7 @@ import static model.cache.PageCache.*;
 public class HexSearchService {
 
     private HexEditorModel editorModel;
-    private List<SearchResult> searchResults;
+    private List<Integer> searchResults;
     private int currentSearchPage;
     private int currentSearchResultIndex;
     private String pattern;
@@ -33,7 +33,7 @@ public class HexSearchService {
 
     public int getCurrentPosition() {
 
-        return searchResults.get(currentSearchResultIndex).pageOffset;
+        return searchResults.get(currentSearchResultIndex);
     }
 
     public int getCurrentResultIndex() {
@@ -58,15 +58,7 @@ public class HexSearchService {
         this.pattern = pattern;
     }
 
-    public Object getValueAtTableCoordinates(int row, int column) {
-        if (row < 0 || column <= 0) throw new IllegalArgumentException("Индекс не может быть отрицательным числом.");
 
-        int index = row * editorModel.getItemsPerLine() + (column - 1);
-        if (index >= 0 && index < editorModel.getData().length) {
-            return editorModel.getData()[index];
-        }
-        return null;
-    }
 
 
     public void searchBytes(int pageNumberToStart) throws IOException {
@@ -111,7 +103,7 @@ public class HexSearchService {
                     }
                 }
                 if (match) {
-                    searchResults.add(new SearchResult(p, copyOfI));
+                    searchResults.add(copyOfI);
                     currentSearchPage = p;
                 }
             }
@@ -139,7 +131,6 @@ public class HexSearchService {
         pattern = null;
         mask = null;
     }
-
     class SearchResult {
         private int pageNumber;
         private int pageOffset;

@@ -4,7 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-public class SearchPanel extends JPanel {
+public class SearchView {
+    private JPanel searchPanel = new JPanel();
     private JTextField searchField;
     private JTextField maskField;
     private JButton searchButton;
@@ -12,29 +13,29 @@ public class SearchPanel extends JPanel {
     private JButton prevButton;
     private JLabel statusLabel;
 
-    public SearchPanel() {
-        setLayout(new FlowLayout(FlowLayout.LEFT));
-        setBorder(BorderFactory.createTitledBorder("Поиск байт"));
+    public SearchView() {
+        searchPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.setBorder(BorderFactory.createTitledBorder("Поиск байт"));
 
-        add(new JLabel("Байты:"));
+        searchPanel.add(new JLabel("Байты:"));
         searchField = new JTextField(15);
-        add(searchField);
+        searchPanel.add(searchField);
 
-        add(new JLabel("Маска:"));
+        searchPanel.add(new JLabel("Маска:"));
         maskField = new JTextField(10);
-        add(maskField);
+        searchPanel.add(maskField);
 
         searchButton = new JButton("Найти");
-        add(searchButton);
+        searchPanel.add(searchButton);
 
         nextButton = new JButton("След.");
-        add(nextButton);
+        searchPanel.add(nextButton);
 
         prevButton = new JButton("Пред.");
-        add(prevButton);
+        searchPanel.add(prevButton);
 
         statusLabel = new JLabel(" ");
-        add(statusLabel);
+        searchPanel.add(statusLabel);
 
         // Добавляем подсказки
         searchField.setToolTipText("Введите байты в hex: 'A1 B2 C3' или 'A1B2C3'");
@@ -43,6 +44,10 @@ public class SearchPanel extends JPanel {
     }
 
     //GETTERS
+
+    public JPanel getSearchPanel() {
+        return searchPanel;
+    }
 
     public JTextField getSearchField() {
         return searchField;
@@ -54,20 +59,28 @@ public class SearchPanel extends JPanel {
 
     // OTHERS
 
-    public void setStatus(String status) {
+    public void setSearchStatus(String status) {
         statusLabel.setText(status);
     }
+    public String getSearchPattern() {
+        return getSearchField().getText();
+    }
+
+    public String getSearchMask() {
+        return getMaskField().getText();
+    }
+
 
     // LISTENERS
-    public void addSearchButtonListener(ActionListener listener) {
+    public void addSearchListener(ActionListener listener) {
         searchButton.addActionListener(listener);
     }
 
-    public void addNextListener(ActionListener listener) {
+    public void addNextSearchListener(ActionListener listener) {
         nextButton.addActionListener(listener);
     }
 
-    public void addPrevListener(ActionListener listener) {
+    public void addPrevSearchListener(ActionListener listener) {
         prevButton.addActionListener(listener);
     }
 

@@ -13,11 +13,11 @@ import java.awt.event.ActionListener;
 public class HexEditorView extends JFrame {
     private TableModel tableModel;
     private FileOpenView fileOpenView;
-    private PaginationPanel paginationPanel;
+    private PaginationView paginationView;
     private LinesAndItemsSettingsPanel settingsPanel;
     private BlockBytesMenuBar blockBytesMenuBar;
     private LabelInfoPanel labelInfoPanel;
-    private SearchPanel searchPanel;
+    private SearchView searchView;
     private EditPanel editPanel;
     private TableContextMenu tableContextMenu;
     private JTable dataTable;
@@ -27,17 +27,17 @@ public class HexEditorView extends JFrame {
 
 
     public HexEditorView(TableModel tableModel,
-                         PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
-                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
+                         LinesAndItemsSettingsPanel settingsPanel,
+                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
         super("HexEditor");
 
         this.tableModel = tableModel;
         this.fileOpenView = new FileOpenView();
-        this.paginationPanel = paginationPanel;
+        this.paginationView = new PaginationView();
         this.settingsPanel = settingsPanel;
         this.blockBytesMenuBar = blockBytesMenuBar;
         this.labelInfoPanel = labelInfoPanel;
-        this.searchPanel = searchPanel;
+        this.searchView = new SearchView();
         this.editPanel = editPanel;
         this.tableContextMenu = new TableContextMenu();
         this.dataTable = new JTable(tableModel);
@@ -54,11 +54,11 @@ public class HexEditorView extends JFrame {
 
         panel.add(fileOpenView.getFileSelectionPanel());
         panel.add(scrollPane);
-        panel.add(paginationPanel);
+        panel.add(paginationView.getPaginationPanel());
         panel.add(settingsPanel);
         setJMenuBar(blockBytesMenuBar);
         panel.add(labelInfoPanel);
-        panel.add(searchPanel);
+        panel.add(searchView.getSearchPanel());
         panel.add(editPanel);
 
         setupTableContextMenu();
@@ -71,21 +71,16 @@ public class HexEditorView extends JFrame {
 
     }
 
+    public SearchView getSearchView() {
+        return searchView;
+    }
 
     public FileOpenView getFileOpenView() {
         return fileOpenView;
     }
 
-    public void addNextPageButtonListener(ActionListener listener) {  //метод добавления слушаля к кнопке загрузки страницы
-        paginationPanel.addNextPageButtonListener(listener);
-    }
-
-    public void addPrevPageButtonListener(ActionListener listener) {
-        paginationPanel.addPrevPageButtonListener(listener);
-    }
-
-    public void addLoadPageButtonListener(ActionListener listener) {
-        paginationPanel.addLoadPageButtonListener(listener);
+    public PaginationView getPaginationView() {
+        return paginationView;
     }
 
     public void addLinesPerPageSpinnerListener(ChangeListener listener) {
@@ -106,18 +101,6 @@ public class HexEditorView extends JFrame {
 
     public void addByteSelectionListener(ListSelectionListener listener) {
         dataTable.getSelectionModel().addListSelectionListener(listener);
-    }
-
-    public void addSearchListener(ActionListener listener) {
-        searchPanel.addSearchButtonListener(listener);
-    }
-
-    public void addNextSearchResultListener(ActionListener listener) {
-        searchPanel.addNextListener(listener);
-    }
-
-    public void addPrevSearchResultListener(ActionListener listener) {
-        searchPanel.addPrevListener(listener);
     }
 
 
@@ -164,12 +147,6 @@ public class HexEditorView extends JFrame {
     }
 
     //OTHER
-
-    // Метод для отображения инфо о количестве страниц и текущей страницы
-    public void setPageInfo(int currentPage, int totalPages) {
-        paginationPanel.getPageInfoLabel().setText(" / " + totalPages);
-        paginationPanel.getPageNumberField().setText(String.valueOf(currentPage));
-    }
 
 
     // Метод для включения/выключения опций "со знаком/без знака"
@@ -218,9 +195,6 @@ public class HexEditorView extends JFrame {
     }
 
 
-    public void setSearchStatus(String statusText) {
-        searchPanel.setStatus(statusText);
-    }
 
 
     public boolean isEditMode() {
@@ -270,10 +244,6 @@ public class HexEditorView extends JFrame {
     }
 
 
-    public int getPageNumberInput() {
-        return Integer.parseInt(paginationPanel.getPageNumberField().getText());
-    }
-
     public int getLinesPerPageInput() {
         return (int) settingsPanel.getLinesPerPage().getValue();
     }
@@ -283,13 +253,6 @@ public class HexEditorView extends JFrame {
     }
 
 
-    public String getSearchPattern() {
-        return searchPanel.getSearchField().getText();
-    }
-
-    public String getSearchMask() {
-        return searchPanel.getMaskField().getText();
-    }
 
 
     // Выпадающие окна
