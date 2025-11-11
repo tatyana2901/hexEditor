@@ -14,7 +14,7 @@ public class Main {
 
         //Создание UI - элементов во view
         HexTableModel tableModel = new HexTableModel(editorModel);
-        FileSelectionPanel fileSelectionPanel = new FileSelectionPanel();
+
         PaginationPanel paginationPanel = new PaginationPanel();
         LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
         BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
@@ -26,7 +26,7 @@ public class Main {
         HexEditingService editingService = new HexEditingService(editorModel);
 
 
-        HexEditorView view = new HexEditorView(tableModel, fileSelectionPanel, paginationPanel, settingsPanel,
+        HexEditorView view = new HexEditorView(tableModel, paginationPanel, settingsPanel,
                 blockBytesMenuBar, labelInfoPanel, searchPanel, editPanel, tableContextMenu);
 
         new HexEditorController(view, editorModel, searchService, editingService);

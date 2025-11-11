@@ -9,11 +9,10 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.io.File;
 
 public class HexEditorView extends JFrame {
     private TableModel tableModel;
-    private FileSelectionPanel fileSelectionPanel;
+    private FileOpenView fileOpenView;
     private PaginationPanel paginationPanel;
     private LinesAndItemsSettingsPanel settingsPanel;
     private BlockBytesMenuBar blockBytesMenuBar;
@@ -27,13 +26,13 @@ public class HexEditorView extends JFrame {
     public static final int NO_OPTION = JOptionPane.NO_OPTION;
 
 
-    public HexEditorView(TableModel tableModel, FileSelectionPanel fileSelectionPanel,
+    public HexEditorView(TableModel tableModel,
                          PaginationPanel paginationPanel, LinesAndItemsSettingsPanel settingsPanel,
                          BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, SearchPanel searchPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
         super("HexEditor");
 
         this.tableModel = tableModel;
-        this.fileSelectionPanel = fileSelectionPanel;
+        this.fileOpenView = new FileOpenView();
         this.paginationPanel = paginationPanel;
         this.settingsPanel = settingsPanel;
         this.blockBytesMenuBar = blockBytesMenuBar;
@@ -53,7 +52,7 @@ public class HexEditorView extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(dataTable);
 
-        panel.add(fileSelectionPanel);
+        panel.add(fileOpenView.getFileSelectionPanel());
         panel.add(scrollPane);
         panel.add(paginationPanel);
         panel.add(settingsPanel);
@@ -73,12 +72,9 @@ public class HexEditorView extends JFrame {
     }
 
 
-    //LISTENERS
-
-    public void addOpenFileListener(ActionListener listener) {  //метод добавления слушаля к кнопке открытия файла(конкретная реализация определена в контроллере)
-        fileSelectionPanel.addOpenFileListener(listener);
+    public FileOpenView getFileOpenView() {
+        return fileOpenView;
     }
-
 
     public void addNextPageButtonListener(ActionListener listener) {  //метод добавления слушаля к кнопке загрузки страницы
         paginationPanel.addNextPageButtonListener(listener);
@@ -173,12 +169,6 @@ public class HexEditorView extends JFrame {
     public void setPageInfo(int currentPage, int totalPages) {
         paginationPanel.getPageInfoLabel().setText(" / " + totalPages);
         paginationPanel.getPageNumberField().setText(String.valueOf(currentPage));
-    }
-
-    public File showOpenFileDialog() {
-        JFileChooser fileChooser = fileSelectionPanel.getFileChooser();
-        int ret = fileChooser.showDialog(this, "Открыть файл");
-        return (ret == JFileChooser.APPROVE_OPTION) ? fileChooser.getSelectedFile() : null;
     }
 
 
@@ -280,10 +270,6 @@ public class HexEditorView extends JFrame {
     }
 
 
-    public void setFileInfo(String info) {
-        fileSelectionPanel.getLabel().setText(info);
-    }
-
     public int getPageNumberInput() {
         return Integer.parseInt(paginationPanel.getPageNumberField().getText());
     }
@@ -337,18 +323,6 @@ public class HexEditorView extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
     }
-/*
-    public int showConfirmChangeSingleByteValueDialog(int position, byte value) {
-        return JOptionPane.showConfirmDialog(
-                this,
-                String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
-                        position, value),
-                "Подтверждение изменения",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
-    }*/
-
 
     //ПЕРЕРИСОВКА ТАБЛИЦЫ
 
