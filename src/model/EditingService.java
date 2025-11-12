@@ -7,11 +7,11 @@ import java.util.Arrays;
 
 import static model.cache.PageCache.getPageOffset;
 
-public class HexEditingService {
+public class EditingService {
 
     private HexEditorModel editorModel;
 
-    public HexEditingService(HexEditorModel editorModel) {
+    public EditingService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
     }
 

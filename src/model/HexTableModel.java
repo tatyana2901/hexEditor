@@ -86,7 +86,7 @@ public class HexTableModel extends AbstractTableModel {
             }
         } catch (Exception ex) {
             System.err.println("Ошибка форматирования значения по индексу " + index + ": " + ex.getMessage());
-            return "0";
+            return "ERR";
         }
     }
 

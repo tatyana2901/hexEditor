@@ -2,7 +2,7 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
-import model.HexSearchService;
+import model.SearchService;
 import view.HexEditorView;
 import view.components.SearchView;
 
@@ -14,14 +14,14 @@ public class SearchController {
     private HexEditorModel editorModel;
     private DisplayHelper helper;
     private HexEditorView view;
-    private HexSearchService searchService;
+    private SearchService searchService;
 
     public SearchController(SearchView searchView, HexEditorModel editorModel, DisplayHelper helper, HexEditorView view) {
         this.searchView = searchView;
         this.editorModel = editorModel;
         this.helper = helper;
         this.view = view;
-        this.searchService = new HexSearchService(editorModel);
+        this.searchService = new SearchService(editorModel);
         setupSearchListeners();
 
     }

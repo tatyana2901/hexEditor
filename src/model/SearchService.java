@@ -7,7 +7,7 @@ import java.util.*;
 
 import static model.cache.PageCache.*;
 
-public class HexSearchService {
+public class SearchService {
 
     private HexEditorModel editorModel;
     private List<SearchResult> searchResults;
@@ -16,7 +16,7 @@ public class HexSearchService {
     private String pattern;
     private String mask;
 
-    public HexSearchService(HexEditorModel editorModel) {
+    public SearchService(HexEditorModel editorModel) {
         this.editorModel = editorModel;
         this.searchResults = new ArrayList<>();
         this.currentSearchPage = -1;
