@@ -4,26 +4,33 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
-public class EditPanel extends JPanel {
-
+public class EnableEditingView {
+    private JPanel enableEditingPanel;
     private JButton enableEditButton;
     private JLabel editStatusLabel;
     private boolean editMode = false;
 
-    public EditPanel() {
-        setLayout(new FlowLayout(FlowLayout.LEFT));
-        setBorder(BorderFactory.createTitledBorder("Редактирование"));
+    public EnableEditingView() {
+        enableEditingPanel = new JPanel();
+        enableEditingPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        enableEditingPanel.setBorder(BorderFactory.createTitledBorder("Редактирование"));
 
         enableEditButton = new JButton("Включить редактирование");
         editStatusLabel = new JLabel("Режим просмотра");
 
-        add(enableEditButton);
-        add(editStatusLabel);
+        enableEditingPanel.add(enableEditButton);
+        enableEditingPanel.add(editStatusLabel);
 
         enableEditButton.setToolTipText("Разрешить редактирование файла (только в режиме BYTE)");
     }
 
     // GETTERS
+
+
+    public JPanel getEnableEditingPanel() {
+        return enableEditingPanel;
+    }
+
     public JButton getEnableEditButton() {
         return enableEditButton;
     }
@@ -50,6 +57,14 @@ public class EditPanel extends JPanel {
         if (!enabled) {
             setEditMode(false);
         }
+    }
+
+    public boolean isEditMode() {
+        return enableEditingView.isEditMode();
+    }
+
+    public void setEditMode(boolean enabled) {
+        enableEditingView.setEditMode(enabled);
     }
 
     // LISTENERS

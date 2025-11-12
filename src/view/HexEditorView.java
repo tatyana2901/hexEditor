@@ -4,7 +4,6 @@ import model.HexTableModel;
 import view.components.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
 import java.awt.*;
@@ -14,32 +13,30 @@ public class HexEditorView extends JFrame {
     private TableModel tableModel;
     private FileOpenView fileOpenView;
     private PaginationView paginationView;
-    private LinesAndItemsSettingsPanel settingsPanel;
+    private LinesAndItemsSettingsView settingsView;
     private BlockBytesMenuBar blockBytesMenuBar;
-    private LabelInfoPanel labelInfoPanel;
+    private LabelInfoView labelInfoView;
     private SearchView searchView;
-    private EditPanel editPanel;
-    private TableContextMenu tableContextMenu;
+  //  private EnableEditingView enableEditingView;
+   // private TableContextMenu tableContextMenu;
     private JTable dataTable;
 
     public static final int YES_OPTION = JOptionPane.YES_OPTION;
-    public static final int NO_OPTION = JOptionPane.NO_OPTION;
 
 
     public HexEditorView(TableModel tableModel,
-                         LinesAndItemsSettingsPanel settingsPanel,
-                         BlockBytesMenuBar blockBytesMenuBar, LabelInfoPanel labelInfoPanel, EditPanel editPanel, TableContextMenu tableContextMenu) {
+                         BlockBytesMenuBar blockBytesMenuBar, TableContextMenu tableContextMenu) {
         super("HexEditor");
 
         this.tableModel = tableModel;
         this.fileOpenView = new FileOpenView();
         this.paginationView = new PaginationView();
-        this.settingsPanel = settingsPanel;
+        this.settingsView = new LinesAndItemsSettingsView();
         this.blockBytesMenuBar = blockBytesMenuBar;
-        this.labelInfoPanel = labelInfoPanel;
+        this.labelInfoView = new LabelInfoView();
         this.searchView = new SearchView();
-        this.editPanel = editPanel;
-        this.tableContextMenu = new TableContextMenu();
+        this.enableEditingView = new EnableEditingView();
+        this.tableContextMenu = tableContextMenu;
         this.dataTable = new JTable(tableModel);
 
         JPanel panel = new JPanel();
@@ -55,11 +52,11 @@ public class HexEditorView extends JFrame {
         panel.add(fileOpenView.getFileSelectionPanel());
         panel.add(scrollPane);
         panel.add(paginationView.getPaginationPanel());
-        panel.add(settingsPanel);
+        panel.add(settingsView.getLinesAndItemsSettingsPanel());
         setJMenuBar(blockBytesMenuBar);
-        panel.add(labelInfoPanel);
+        panel.add(labelInfoView.getLabelPanel());
         panel.add(searchView.getSearchPanel());
-        panel.add(editPanel);
+        panel.add(enableEditingView.getEnableEditingPanel());
 
         setupTableContextMenu();
         setupTableSelection();
@@ -69,6 +66,14 @@ public class HexEditorView extends JFrame {
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+    }
+
+    public LabelInfoView getLabelInfoView() {
+        return labelInfoView;
+    }
+
+    public LinesAndItemsSettingsView getSettingsView() {
+        return settingsView;
     }
 
     public SearchView getSearchView() {
@@ -83,13 +88,6 @@ public class HexEditorView extends JFrame {
         return paginationView;
     }
 
-    public void addLinesPerPageSpinnerListener(ChangeListener listener) {
-        settingsPanel.addLinesPerPageSpinnerListener(listener);
-    }
-
-    public void addItemsPerLineSpinnerListener(ChangeListener listener) {
-        settingsPanel.addItemsPerLineSpinnerListener(listener);
-    }
 
     public void addSignedItemListener(ActionListener listener) {
         blockBytesMenuBar.addSignedItemListener(listener);
@@ -118,9 +116,6 @@ public class HexEditorView extends JFrame {
         blockBytesMenuBar.getDoubleItem().addActionListener(doubleListener);
     }
 
-    public void addEnableEditListener(ActionListener listener) {
-        editPanel.addEnableEditListener(listener);
-    }
 
     public void addDeleteWithShiftListener(ActionListener listener) {
         tableContextMenu.addDeleteWithShiftListener(listener);
@@ -197,14 +192,6 @@ public class HexEditorView extends JFrame {
 
 
 
-    public boolean isEditMode() {
-        return editPanel.isEditMode();
-    }
-
-    public void setEditMode(boolean enabled) {
-        editPanel.setEditMode(enabled);
-    }
-
     private void setupTableContextMenu() {
         dataTable.setComponentPopupMenu(tableContextMenu.getContextMenu());
 
@@ -233,27 +220,6 @@ public class HexEditorView extends JFrame {
         dataTable.setCellSelectionEnabled(true);
         dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     }
-
-    public void setByteLabelText(byte value) {
-        labelInfoPanel.setByteValue(value);
-    }
-
-
-    public void clearByteLabelText() {
-        labelInfoPanel.clear();
-    }
-
-
-    public int getLinesPerPageInput() {
-        return (int) settingsPanel.getLinesPerPage().getValue();
-    }
-
-    public int getItemsPerLineInput() {
-        return (int) settingsPanel.getItemsPerLine().getValue();
-    }
-
-
-
 
     // Выпадающие окна
 

@@ -1,7 +1,6 @@
 import controller.HexEditorController;
 import model.HexEditingService;
 import model.HexEditorModel;
-import model.HexSearchService;
 import model.HexTableModel;
 import view.HexEditorView;
 import view.components.*;
@@ -16,19 +15,15 @@ public class Main {
         HexTableModel tableModel = new HexTableModel(editorModel);
 
 
-        LinesAndItemsSettingsPanel settingsPanel = new LinesAndItemsSettingsPanel();
         BlockBytesMenuBar blockBytesMenuBar = new BlockBytesMenuBar();
-        LabelInfoPanel labelInfoPanel = new LabelInfoPanel();
-        HexSearchService searchService = new HexSearchService(editorModel);
-        EditPanel editPanel = new EditPanel();
         TableContextMenu tableContextMenu = new TableContextMenu();
         HexEditingService editingService = new HexEditingService(editorModel);
 
 
-        HexEditorView view = new HexEditorView(tableModel, settingsPanel,
-                blockBytesMenuBar, labelInfoPanel, editPanel, tableContextMenu);
+        HexEditorView view = new HexEditorView(tableModel,
+                blockBytesMenuBar, tableContextMenu);
 
-        new HexEditorController(view, editorModel, searchService, editingService);
+        new HexEditorController(view, editorModel, editingService);
 
 
     }

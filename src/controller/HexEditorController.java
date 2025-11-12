@@ -14,24 +14,21 @@ public class HexEditorController {
     private HexEditorModel editorModel;
     private HexEditingService editingService;
     private DisplayHelper helper;
-    private SelectionService selectionService;
 
 
-    public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexSearchService searchService, HexEditingService editingService) {
+
+    public HexEditorController(HexEditorView view, HexEditorModel editorModel, HexEditingService editingService) {
         this.view = view;
         this.editorModel = editorModel;
 
         this.editingService = editingService;
         this.helper = new DisplayHelper(editorModel, view);
 
-        selectionService = new SelectionService(editorModel);
         new SearchController(view.getSearchView(), editorModel, helper, view);
         new FileOpenController(view.getFileOpenView(), editorModel, helper, view);
         new PaginationController(view.getPaginationView(), editorModel, helper, view);
-
-        view.addItemsPerLineSpinnerListener(e -> changeItemsPerLine());
-        view.addLinesPerPageSpinnerListener(e -> changeLinesPerPage());
-
+        new LinesAndItemsSettingsController(view.getSettingsView(), helper, editorModel, view);
+        new SelectionController(view.getLabelInfoView(),view,editorModel);
 
         setupDataTypeListeners();
 
@@ -39,7 +36,7 @@ public class HexEditorController {
         view.addSignedItemListener(e -> setSigned(true));
         view.addUnsignedItemListener(e -> setSigned(false));
 
-        setupTableSelectionListener();
+
 
 
         view.addEnableEditListener(e -> activateEditMode());
@@ -272,34 +269,6 @@ public class HexEditorController {
     }
 
 
-    private void changeItemsPerLine() {
-        try {
-            int itemsPerLine = view.getItemsPerLineInput();
-            editorModel.setItemsPerLine(itemsPerLine);
-            helper.displayPage(1);
-            view.updateTableStructure();
-        } catch (ClassCastException e) {
-            view.showErrorDialog("Введите целое число в качестве количества элементов в строке.", "Ошибка");
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-
-    }
-
-
-    private void changeLinesPerPage() {
-        try {
-            int linesPerPage = view.getLinesPerPageInput();
-            editorModel.setLinesPerPage(linesPerPage);
-            helper.displayPage(1);
-
-        } catch (ClassCastException e) {
-            view.showErrorDialog("Введите целое число в качестве количества строк.", "Ошибка");
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-    }
-
     private void setupDataTypeListeners() {
         view.setupDataTypeListeners(
                 e -> setDataType(DataType.BYTE),
@@ -329,39 +298,6 @@ public class HexEditorController {
             view.updateTableData();
         } catch (Exception ex) {
             view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-    }
-
-
-    private void setupTableSelectionListener() {
-        view.addByteSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                onByteSelectionChanged();
-            }
-        });
-    }
-
-    private void onByteSelectionChanged() {
-        int selectedRow = view.getSelectedRow();
-        int selectedColumn = view.getSelectedColumn();
-
-        if (selectedRow >= 0 && selectedColumn > 0) {
-            try {
-                Object value = selectionService.getValueAtTableCoordinates(selectedRow, selectedColumn);
-
-                if (value instanceof Byte) {
-                    byte byteValue = (Byte) value;
-                    view.setByteLabelText(byteValue);
-                } else {
-                    view.clearByteLabelText();
-                }
-
-            } catch (Exception ex) {
-                view.clearByteLabelText();
-                view.showErrorDialog(ex.getMessage(), "Ошибка");
-            }
-        } else {
-            view.clearByteLabelText();
         }
     }
 

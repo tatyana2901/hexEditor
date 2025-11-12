@@ -2,7 +2,6 @@ package model;
 
 public class SelectionService {
 
-
     HexEditorModel editorModel;
 
     public SelectionService(HexEditorModel editorModel) {
