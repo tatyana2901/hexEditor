@@ -1,7 +1,10 @@
 package view.components;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.io.File;
 

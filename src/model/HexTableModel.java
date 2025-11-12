@@ -1,7 +1,5 @@
 package model;
 
-import model.cache.PageCache;
-
 import javax.swing.table.AbstractTableModel;
 
 import static model.cache.PageCache.getPageOffset;
@@ -19,37 +17,29 @@ public class HexTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-
-        //   return hexEditorModel.getLinesPerPage(); //ЗАМЕНИЛА ОПРЕДЕЛЕНИЕ!!!
         return (int) Math.ceil((double) hexEditorModel.getData().length / hexEditorModel.getType().getBlockSize() / hexEditorModel.getItemsPerLine());
     }
 
     @Override
     public int getColumnCount() {
-        // Количество столбцов в таблице (количество байтов в строке + столбец адреса)
         return hexEditorModel.getItemsPerLine() + 1;
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        // Получение значения ячейки таблицы без учета строки-заголовка
         try {
             int index = rowIndex * hexEditorModel.getItemsPerLine() + columnIndex - 1;
 
             if (columnIndex == 0) {
-                // Первый столбец - адрес
-                //  return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + hexEditorModel.getItemsPerPage() * (hexEditorModel.getCurrentPageNumber() - 1))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
                 return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + getPageOffset(hexEditorModel.getCurrentPageNumber(), hexEditorModel.getItemsPerUnchangedPage()))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
             } else if (index >= 0 && index < hexEditorModel.getData().length) {
-                // Данные из файла
                 return getFormattedRow(hexEditorModel.getType(), index);
             } else {
-                return ""; // Пустая ячейка, если нет данных
+                return "";
             }
-        } catch (Exception ex) {  // Логируем ошибку для разработчика
+        } catch (Exception ex) {
             System.err.println("Ошибка в ячейке [" + rowIndex + ", " + columnIndex + "]: " + ex.getMessage());
             ex.printStackTrace();
-            // Возвращаем пустое значение для пользователя, чтобы не ломать GUI
             return "ERR";
         }
     }
@@ -57,15 +47,12 @@ public class HexTableModel extends AbstractTableModel {
 
     private String getFormattedRow(DataType type, int index) {
         try {
-            //   byte value = hexEditorModel.getData().get(index);
-
             byte[] bytesToConvert = BlockDataConverter.getBlockByPositionInList(hexEditorModel.getData(), type.getBlockSize(), index);
             switch (type) {
 
                 case BYTE:
                     byte[] bytesPage = hexEditorModel.getData();
-
-                    return String.format("%02X", bytesPage[index]); // Всегда без знака (hex)
+                    return String.format("%02X", bytesPage[index]);
                 case SHORT:
                     short shortValue = BlockDataConverter.getShortsFromBytes(bytesToConvert);
                     return hexEditorModel.isSigned() ? String.format("%d", shortValue) : Short.toUnsignedInt(shortValue) + "";
@@ -95,9 +82,9 @@ public class HexTableModel extends AbstractTableModel {
     public String getColumnName(int column) {
         try {
             if (column == 0) {
-                return "Address"; // Название столбца адреса
+                return "Address";
             } else {
-                return String.format("%02X", column - 1); // Названия столбцов данных (00, 01, 02...)
+                return String.format("%02X", column - 1);
             }
         } catch (Exception ex) {
             System.err.println("Ошибка в формировании названия столца № " + column + ": " + ex.getMessage());
@@ -107,12 +94,9 @@ public class HexTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return false; // Ячейки не редактируемые
-    }
+        return false;
 
 
-    public void fireTableDataChanged() {
-        super.fireTableDataChanged();
     }
 
 }

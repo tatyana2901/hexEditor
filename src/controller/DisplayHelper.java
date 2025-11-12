@@ -2,7 +2,7 @@ package controller;
 
 import model.HexEditorModel;
 import view.HexEditorView;
-import view.components.PaginationView;
+
 
 import java.io.IOException;
 

@@ -16,8 +16,8 @@ public class HexEditorModel {
     private long totalPages;
     private File file;
 
-    private boolean signed = true; // по умолчанию отображение со знаком
-    private DataType type = DataType.BYTE; //по умолчанию тип отображения  - байт;
+    private boolean signed = true;
+    private DataType type = DataType.BYTE;
 
 
     public HexEditorModel() {
@@ -107,7 +107,7 @@ public class HexEditorModel {
             int bytesToRead = Math.min(getItemsPerUnchangedPage() * type.getBlockSize(), (int) (fileSize - startPosition));
             byte[] bytesPageData = new byte[bytesToRead];
             raf.readFully(bytesPageData);
-            PageCache.addCachePage(new PageCache(bytesPageData, pageNumber)); //кладем прочитанную страницу в кэш
+            PageCache.addCachePage(new PageCache(bytesPageData, pageNumber));
             return bytesPageData;
         }
     }
@@ -121,9 +121,9 @@ public class HexEditorModel {
             throw new IllegalStateException("Файл не открыт. Сначала выберите файл.");
         }
         if (PageCache.isPageInCache(pageNumber)) {
-            data = PageCache.getCachedPageByNumber(pageNumber); // берем страницу из кэша
+            data = PageCache.getCachedPageByNumber(pageNumber);
         } else {
-            data = readPageData(pageNumber); // читаем страницу из файла
+            data = readPageData(pageNumber);
         }
 
     }

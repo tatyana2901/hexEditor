@@ -1,5 +1,7 @@
-package model;
+package service;
 
+import model.HexEditorModel;
+import model.HexUtils;
 import model.cache.PageCache;
 
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package controller;
 
 import model.HexEditorModel;
-import model.SelectionService;
+import service.SelectionService;
 import view.HexEditorView;
 import view.components.LabelInfoView;
 

@@ -1,7 +1,11 @@
 package view.components;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
 public class SearchView {
@@ -37,13 +41,11 @@ public class SearchView {
         statusLabel = new JLabel(" ");
         searchPanel.add(statusLabel);
 
-        // Добавляем подсказки
         searchField.setToolTipText("Введите байты в hex: 'A1 B2 C3' или 'A1B2C3'");
         maskField.setToolTipText("Маска в hex: 'FF 00 FF' - где FF учитывать, 00 - игнорировать");
 
     }
 
-    //GETTERS
 
     public JPanel getSearchPanel() {
         return searchPanel;
@@ -57,7 +59,7 @@ public class SearchView {
         return maskField;
     }
 
-    // OTHERS
+
 
     public void setSearchStatus(String status) {
         statusLabel.setText(status);
@@ -71,7 +73,6 @@ public class SearchView {
     }
 
 
-    // LISTENERS
     public void addSearchListener(ActionListener listener) {
         searchButton.addActionListener(listener);
     }

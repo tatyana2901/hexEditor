@@ -2,7 +2,7 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
-import model.SearchService;
+import service.SearchService;
 import view.HexEditorView;
 import view.components.SearchView;
 
@@ -68,8 +68,8 @@ public class SearchController {
 
     private void highlightSearchResult() {
         try {
-            int position = searchService.getCurrentPosition(); //смещение найденного байта
-            int targetPage = searchService.getCurrentSearchPage(); //берет из списка значение по индексу (соответствует номерц текущей позиции)
+            int position = searchService.getCurrentPosition();
+            int targetPage = searchService.getCurrentSearchPage();
             helper.displayPage(targetPage);
             if (position >= 0) {
                 int[] startCoords = searchService.getTableCoordinatesForPosition(position);

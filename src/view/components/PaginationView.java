@@ -1,6 +1,9 @@
 package view.components;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import java.awt.event.ActionListener;
 
 public class PaginationView {
@@ -27,20 +30,15 @@ public class PaginationView {
         paginationPanel.add(nextPageButton);
     }
 
-    //GETTERS
+
     public JTextField getPageNumberField() {
         return pageNumberField;
-    }
-
-    public JLabel getPageInfoLabel() {
-        return pageInfoLabel;
     }
 
     public JPanel getPaginationPanel() {
         return paginationPanel;
     }
 
-    // Метод для отображения инфо о количестве страниц и текущей страницы
     public void setPageInfo(int currentPage, int totalPages) {
         pageInfoLabel.setText(" / " + totalPages);
         pageNumberField.setText(String.valueOf(currentPage));
@@ -50,7 +48,7 @@ public class PaginationView {
         return Integer.parseInt(getPageNumberField().getText());
     }
 
-    //LISTENERS
+
     public void addNextPageButtonListener(ActionListener listener) {  //метод добавления слушаля к кнопке загрузки страницы(конкретная реализация определена в контроллере)
         nextPageButton.addActionListener(listener);
     }

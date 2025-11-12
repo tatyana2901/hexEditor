@@ -1,7 +1,12 @@
 package view.components;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
 public class EditingView {
@@ -42,28 +47,21 @@ public class EditingView {
 
         contextMenu.add(deleteWithShiftItem);
         contextMenu.add(deleteWithZeroItem);
-        contextMenu.addSeparator(); // Добавляем разделитель для лучшей организации
+        contextMenu.addSeparator();
         contextMenu.add(insertOverwriteItem);
         contextMenu.add(insertShiftItem);
         contextMenu.add(changeByteValue);
     }
-
-    // GETTERS
 
 
     public JPanel getEnableEditingPanel() {
         return enableEditingPanel;
     }
 
-    public JButton getEnableEditButton() {
-        return enableEditButton;
-    }
-
     public boolean isEditMode() {
         return editMode;
     }
 
-    // METHODS TO UPDATE UI
     public void setEditMode(boolean enabled) {
         this.editMode = enabled;
 
@@ -76,15 +74,7 @@ public class EditingView {
         }
     }
 
-    public void setEditModeEnabled(boolean enabled) {
-        enableEditButton.setEnabled(enabled);
-        if (!enabled) {
-            setEditMode(false);
-        }
-    }
 
-
-    // LISTENERS
     public void addEnableEditListener(ActionListener listener) {
         enableEditButton.addActionListener(listener);
     }
@@ -93,7 +83,7 @@ public class EditingView {
         return contextMenu;
     }
 
-    // LISTENERS
+
     public void addDeleteWithShiftListener(ActionListener listener) {
         deleteWithShiftItem.addActionListener(listener);
     }

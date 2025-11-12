@@ -1,14 +1,13 @@
 package controller;
 
 import model.DataType;
-import model.EditingService;
+import service.EditingService;
 import model.HexEditorModel;
 import model.HexUtils;
 import view.HexEditorView;
 import view.components.EditingView;
 
 import java.io.IOException;
-import java.util.function.BiConsumer;
 
 public class EditingController {
 
@@ -18,38 +17,18 @@ public class EditingController {
     private DisplayHelper helper;
     private EditingView editingView;
 
-
     public EditingController(HexEditorView view, HexEditorModel editorModel, DisplayHelper helper, EditingView editingView) {
         this.editingService = new EditingService(editorModel);
         this.view = view;
         this.editorModel = editorModel;
         this.helper = helper;
         this.editingView = editingView;
-
-
-
         editingView.addEnableEditListener(e -> activateEditMode());
         editingView.addChangeByteValueListener(e -> changeSingleByteValue());
         editingView.addInsertOverwriteListener(e -> insertBytes(false));
         editingView.addInsertShiftListener(e -> insertBytes(true));
-
-
-        editingView.addDeleteWithShiftListener(e -> deleteSelectedBytes((startPosition, length) -> {
-            try {
-                editingService.removeBytesWithShift(startPosition, length);
-            } catch (IOException ex) {
-                view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
-                ex.printStackTrace();
-            }
-        }));
-        editingView.addDeleteWithZeroListener(e -> deleteSelectedBytes((startPosition, length) -> {
-            try {
-                editingService.removeBytesWithZero(startPosition, length);
-            } catch (IOException ex) {
-                view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
-                ex.printStackTrace();
-            }
-        }));
+        editingView.addDeleteWithShiftListener(e -> deleteSelectedBytes(true));
+        editingView.addDeleteWithZeroListener(e -> deleteSelectedBytes(false));
     }
 
     private void activateEditMode() {
@@ -65,35 +44,6 @@ public class EditingController {
         editingView.setTableContextMenuEnabled(newEditMode);
     }
 
-    private boolean validateEditConditions() {
-        if (! editingView.isEditMode()) {
-            view.showErrorDialog("Включите режим редактирования", "Ошибка");
-            return false;
-        }
-
-        if (editorModel.getType() != DataType.BYTE) {
-            view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
-            return false;
-        }
-
-        if (editorModel.getFile() == null) {
-            view.showErrorDialog("Файл не открыт", "Ошибка");
-            return false;
-        }
-
-        return true;
-    }
-
-    private int[] getSelection() {
-        int[] selectedRows = view.getSelectedRows();
-        int[] selectedColumns = view.getSelectedColumns();
-
-        if (selectedRows.length > 0 && selectedColumns.length > 0) {
-            return editingService.getSelectedBytesRange(selectedRows, selectedColumns);
-        }
-        return null;
-
-    }
 
     private void executeEditingOperation(EditingOperation editingOperation, String successMessage) {
         try {
@@ -109,6 +59,37 @@ public class EditingController {
             view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
             ex.printStackTrace();
         }
+    }
+
+
+    private int[] getSelection() {
+        int[] selectedRows = view.getSelectedRows();
+        int[] selectedColumns = view.getSelectedColumns();
+
+        if (selectedRows.length > 0 && selectedColumns.length > 0) {
+            return editingService.getSelectedBytesRange(selectedRows, selectedColumns);
+        }
+        return null;
+
+    }
+
+    private boolean validateEditConditions() {
+        if (!editingView.isEditMode()) {
+            view.showErrorDialog("Включите режим редактирования", "Ошибка");
+            return false;
+        }
+
+        if (editorModel.getType() != DataType.BYTE) {
+            view.showErrorDialog("Редактирование доступно только в режиме BYTE", "Ошибка");
+            return false;
+        }
+
+        if (editorModel.getFile() == null) {
+            view.showErrorDialog("Файл не открыт", "Ошибка");
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -190,28 +171,23 @@ public class EditingController {
 
         if (confirm != view.YES_OPTION) return;
 
-        // Создаем final копии для использования в лямбде
-        final int finalPosition = position;
-        final byte[] finalBytesToInsert = bytesToInsert;
-        final boolean finalWithShift = withShift;
-
         // Выполняем операцию
         String operationName = withShift ? "вставлены со сдвигом" : "вставлены с заменой";
         executeEditingOperation(
                 () -> {
-                    if (finalWithShift) {
-                        editingService.insertBytesWithShift(finalPosition, finalBytesToInsert);
+                    if (withShift) {
+                        editingService.insertBytesWithShift(position, bytesToInsert);
                     } else {
-                        editingService.insertBytesWithOverwrite(finalPosition, finalBytesToInsert);
+                        editingService.insertBytesWithOverwrite(position, bytesToInsert);
                     }
                 },
                 String.format("Байты успешно вставлены %s\nПозиция: %d\nКоличество: %d байт",
-                        operationName, finalPosition, finalBytesToInsert.length)
+                        operationName, position, bytesToInsert.length)
         );
     }
 
 
-    private void deleteSelectedBytes(BiConsumer<Integer, Integer> editingFunction) {
+    private void deleteSelectedBytes(boolean withShift) {
         if (!validateEditConditions()) return;
         try {
             int[] selection = getSelection();
@@ -233,8 +209,14 @@ public class EditingController {
 
             // Используем executeEditingOperation для единообразия
             executeEditingOperation(
-                    () -> editingFunction.accept(position, length),
-                    String.format("Байты успешно удалены\nПозиция: %d, Количество: %d байт",
+                    () -> {
+                        if (withShift) {
+                            editingService.removeBytesWithShift(position, length);
+                        } else {
+                            editingService.removeBytesWithZero(position, length);
+                        }
+                    },
+                    String.format("Байты успешно удалены \nПозиция: %d, Количество: %d байт",
                             position, length)
             );
 
@@ -245,6 +227,7 @@ public class EditingController {
         }
 
     }
+
     private byte[] requestHexBytesFromUser(String title, String message) {
         String bytesInput = view.showInputDialog(title, message);
 
@@ -254,4 +237,10 @@ public class EditingController {
 
         return HexUtils.parseHexBytes(bytesInput);
     }
+}
+
+
+@FunctionalInterface
+interface EditingOperation {
+    void execute() throws IOException;
 }

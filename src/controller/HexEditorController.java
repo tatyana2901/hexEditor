@@ -1,12 +1,7 @@
 package controller;
 
-import model.*;
+import model.HexEditorModel;
 import view.HexEditorView;
-import view.components.SearchView;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.function.BiConsumer;
 
 
 public class HexEditorController {
@@ -26,49 +21,9 @@ public class HexEditorController {
         new PaginationController(view.getPaginationView(), editorModel, helper, view);
         new LinesAndItemsSettingsController(view.getSettingsView(), helper, editorModel, view);
         new SelectionController(view.getLabelInfoView(), view, editorModel);
+        new BlockBytesController(view, editorModel, helper, view.getBlockBytesView());
 
-        setupDataTypeListeners();
-
-        view.addSignedItemListener(e -> setSigned(true));
-        view.addUnsignedItemListener(e -> setSigned(false));
-    }
-
-    private void setupDataTypeListeners() {
-        view.setupDataTypeListeners(
-                e -> setDataType(DataType.BYTE),
-                e -> setDataType(DataType.SHORT),
-                e -> setDataType(DataType.INTEGER),
-                e -> setDataType(DataType.LONG),
-                e -> setDataType(DataType.FLOAT),
-                e -> setDataType(DataType.DOUBLE)
-        );
-    }
-
-    private void setDataType(DataType dataType) {
-        try {
-            editorModel.setType(dataType);
-            boolean isIntegerType = (dataType == DataType.SHORT || dataType == DataType.INTEGER || dataType == DataType.LONG);
-            view.setIntegerSignOptionsEnabled(isIntegerType);
-            helper.displayPage(1);
-
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
-    }
-
-    private void setSigned(boolean signed) {
-        try {
-            editorModel.setSigned(signed);
-            view.updateTableData();
-        } catch (Exception ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
-        }
     }
 
 
-}
-
-@FunctionalInterface
-interface EditingOperation {
-    void execute() throws IOException;
 }

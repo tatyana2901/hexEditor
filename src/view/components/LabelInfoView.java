@@ -1,7 +1,10 @@
 package view.components;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import java.awt.GridLayout;
 
 public class LabelInfoView {
     private JPanel labelPanel;
@@ -11,7 +14,7 @@ public class LabelInfoView {
     public LabelInfoView() {
 
         labelPanel = new JPanel();
-        labelPanel.setLayout(new GridLayout(2, 2)); // Два ряда, два столбца
+        labelPanel.setLayout(new GridLayout(2, 2));
 
         labelPanel.add(new JLabel("Decimal (Signed):", SwingConstants.RIGHT));
         decimalSignedLabel = new JLabel("0");
@@ -29,8 +32,8 @@ public class LabelInfoView {
     }
 
     public void setByteLabelText(byte byteValue) {
-        decimalSignedLabel.setText(String.valueOf((int) byteValue)); // Signed
-        decimalUnsignedLabel.setText(String.valueOf((Byte.toUnsignedInt(byteValue)))); // Unsigned
+        decimalSignedLabel.setText(String.valueOf((int) byteValue));
+        decimalUnsignedLabel.setText(String.valueOf((Byte.toUnsignedInt(byteValue))));
 
     }
 

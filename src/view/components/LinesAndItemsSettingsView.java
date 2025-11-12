@@ -1,8 +1,11 @@
 package view.components;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.FlowLayout;
 
 public class LinesAndItemsSettingsView {
     private JSpinner linesPerPageSpinner;
@@ -12,9 +15,9 @@ public class LinesAndItemsSettingsView {
     public LinesAndItemsSettingsView() {
         panel = new JPanel();
         JLabel linesPerPageLabel = new JLabel("Количество строк на странице:");
-        linesPerPageSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 256, 1)); // Default: 16, Min: 1, Max: 256, Step:1
+        linesPerPageSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 256, 1));
         JLabel itemsPerLineLabel = new JLabel("Элементов в строке:");
-        itemsPerLineSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 1024, 1)); // Default: 16, Min: 1, Max: 1024, Step: 1
+        itemsPerLineSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 1024, 1));
 
         panel.add(linesPerPageLabel);
         panel.add(linesPerPageSpinner);
@@ -22,8 +25,6 @@ public class LinesAndItemsSettingsView {
         panel.add(itemsPerLineSpinner);
         panel.setLayout(new FlowLayout());
     }
-
-    //GETTERS
 
 
     public JPanel getLinesAndItemsSettingsPanel() {
@@ -38,7 +39,6 @@ public class LinesAndItemsSettingsView {
         return (int) itemsPerLineSpinner.getValue();
     }
 
-    //LISTENERS
     public void addLinesPerPageListener(ChangeListener listener) {
         linesPerPageSpinner.addChangeListener(listener);
     }

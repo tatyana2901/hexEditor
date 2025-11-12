@@ -1,10 +1,14 @@
 package view.components;
 
-import javax.swing.*;
+import javax.swing.ButtonGroup;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ActionListener;
 
-public class BlockBytesMenuBar extends JMenuBar {
-
+public class BlockBytesView {
+    private JMenuBar menuBar;
     private JMenu viewMenu;
     private JMenu dataTypeMenu;
     private JMenuItem byteItem, shortItem, intItem, longItem, floatItem, doubleItem;
@@ -12,8 +16,8 @@ public class BlockBytesMenuBar extends JMenuBar {
     private ButtonGroup integerSignGroup;
 
 
-    public BlockBytesMenuBar() {
-
+    public BlockBytesView() {
+        menuBar = new JMenuBar();
         viewMenu = new JMenu("Вид");
         dataTypeMenu = new JMenu("Тип данных");
 
@@ -31,7 +35,6 @@ public class BlockBytesMenuBar extends JMenuBar {
         dataTypeMenu.add(floatItem);
         dataTypeMenu.add(doubleItem);
 
-        // Создаем подменю для выбора "со знаком/без знака"
         JMenu integerSignMenu = new JMenu("Целое число: знак");
         signedItem = new JRadioButtonMenuItem("Со знаком");
         unsignedItem = new JRadioButtonMenuItem("Без знака");
@@ -43,22 +46,25 @@ public class BlockBytesMenuBar extends JMenuBar {
         integerSignMenu.add(unsignedItem);
 
         viewMenu.add(dataTypeMenu);
-        viewMenu.add(integerSignMenu); // Добавляем подменю в меню "Вид"
+        viewMenu.add(integerSignMenu);
 
-        add(viewMenu);
+        menuBar.add(viewMenu);
 
-        byteItem.setSelected(true); // Устанавливаем Byte выбранным по умолчанию
-        signedItem.setSelected(true); // Целые числа по умолчанию "со знаком"
-        setIntegerSignOptionsEnabled(false); // Сначала отключаем опции "со знаком/без знака"
+        byteItem.setSelected(true);
+        signedItem.setSelected(true);
+        setIntegerSignOptionsEnabled(false);
 
     }
 
-    // Методы для включения/выключения опций "со знаком/без знака"
+
     public void setIntegerSignOptionsEnabled(boolean enabled) {
         signedItem.setEnabled(enabled);
         unsignedItem.setEnabled(enabled);
     }
 
+    public JMenuBar getMenuBar() {
+        return menuBar;
+    }
 
     public JMenuItem getByteItem() {
         return byteItem;
@@ -84,8 +90,6 @@ public class BlockBytesMenuBar extends JMenuBar {
         return doubleItem;
     }
 
-    //LISTENERS
-
     public void addSignedItemListener(ActionListener listener) {
         signedItem.addActionListener(listener);
     }
@@ -94,5 +98,18 @@ public class BlockBytesMenuBar extends JMenuBar {
         unsignedItem.addActionListener(listener);
     }
 
+    public void setupDataTypeListeners(ActionListener byteListener,
+                                       ActionListener shortListener,
+                                       ActionListener intListener,
+                                       ActionListener longListener,
+                                       ActionListener floatListener,
+                                       ActionListener doubleListener) {
+        getByteItem().addActionListener(byteListener);
+        getShortItem().addActionListener(shortListener);
+        getIntItem().addActionListener(intListener);
+        getLongItem().addActionListener(longListener);
+        getFloatItem().addActionListener(floatListener);
+        getDoubleItem().addActionListener(doubleListener);
+    }
 
 }

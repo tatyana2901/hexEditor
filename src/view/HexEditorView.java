@@ -1,41 +1,51 @@
 package view;
 
 import model.HexTableModel;
-import view.components.*;
+import view.components.BlockBytesView;
+import view.components.EditingView;
+import view.components.FileOpenView;
+import view.components.LabelInfoView;
+import view.components.LinesAndItemsSettingsView;
+import view.components.PaginationView;
+import view.components.SearchView;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.Dimension;
 
 public class HexEditorView extends JFrame {
     private TableModel tableModel;
     private FileOpenView fileOpenView;
     private PaginationView paginationView;
     private LinesAndItemsSettingsView settingsView;
-    private BlockBytesMenuBar blockBytesMenuBar;
+    private BlockBytesView blockBytesView;
     private LabelInfoView labelInfoView;
     private SearchView searchView;
     private EditingView editingView;
-    // private TableContextMenu tableContextMenu;
     private JTable dataTable;
 
     public static final int YES_OPTION = JOptionPane.YES_OPTION;
 
 
-    public HexEditorView(TableModel tableModel, BlockBytesMenuBar blockBytesMenuBar) {
+    public HexEditorView(TableModel tableModel) {
         super("HexEditor");
 
         this.tableModel = tableModel;
         this.fileOpenView = new FileOpenView();
         this.paginationView = new PaginationView();
         this.settingsView = new LinesAndItemsSettingsView();
-        this.blockBytesMenuBar = blockBytesMenuBar;
+        this.blockBytesView = new BlockBytesView();
         this.labelInfoView = new LabelInfoView();
         this.searchView = new SearchView();
         this.editingView = new EditingView();
-        //  this.tableContextMenu = tableContextMenu;
         this.dataTable = new JTable(tableModel);
 
         JPanel panel = new JPanel();
@@ -52,7 +62,7 @@ public class HexEditorView extends JFrame {
         panel.add(scrollPane);
         panel.add(paginationView.getPaginationPanel());
         panel.add(settingsView.getLinesAndItemsSettingsPanel());
-        setJMenuBar(blockBytesMenuBar);
+        setJMenuBar(blockBytesView.getMenuBar());
         panel.add(labelInfoView.getLabelPanel());
         panel.add(searchView.getSearchPanel());
         panel.add(editingView.getEnableEditingPanel());
@@ -65,6 +75,10 @@ public class HexEditorView extends JFrame {
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+    }
+
+    public BlockBytesView getBlockBytesView() {
+        return blockBytesView;
     }
 
     public EditingView getEditingView() {
@@ -91,50 +105,16 @@ public class HexEditorView extends JFrame {
         return paginationView;
     }
 
-
-    public void addSignedItemListener(ActionListener listener) {
-        blockBytesMenuBar.addSignedItemListener(listener);
-    }
-
-    public void addUnsignedItemListener(ActionListener listener) {
-        blockBytesMenuBar.addUnsignedItemListener(listener);
-    }
-
     public void addByteSelectionListener(ListSelectionListener listener) {
         dataTable.getSelectionModel().addListSelectionListener(listener);
     }
 
 
-    public void setupDataTypeListeners(ActionListener byteListener,
-                                       ActionListener shortListener,
-                                       ActionListener intListener,
-                                       ActionListener longListener,
-                                       ActionListener floatListener,
-                                       ActionListener doubleListener) {
-        blockBytesMenuBar.getByteItem().addActionListener(byteListener);
-        blockBytesMenuBar.getShortItem().addActionListener(shortListener);
-        blockBytesMenuBar.getIntItem().addActionListener(intListener);
-        blockBytesMenuBar.getLongItem().addActionListener(longListener);
-        blockBytesMenuBar.getFloatItem().addActionListener(floatListener);
-        blockBytesMenuBar.getDoubleItem().addActionListener(doubleListener);
-    }
-
-
-    //OTHER
-
-
-    // Метод для включения/выключения опций "со знаком/без знака"
-    public void setIntegerSignOptionsEnabled(boolean enabled) {
-        blockBytesMenuBar.setIntegerSignOptionsEnabled(enabled);
-
-    }
-
-    //Получение значения выделенной ячейки
     public int getSelectedRow() {
         return dataTable.getSelectedRow();
     }
 
-    //Получение значения выделенной колонки
+
     public int getSelectedColumn() {
         return dataTable.getSelectedColumn();
     }
@@ -152,14 +132,12 @@ public class HexEditorView extends JFrame {
     }
 
     public void selectTableCell(int row, int column) {
-        // Очищаем предыдущее выделение
+
         clearSelection();
 
-        // Устанавливаем выделение конкретной ячейки
         dataTable.setRowSelectionInterval(row, row);
         dataTable.setColumnSelectionInterval(column, column);
 
-        // Убеждаемся, что ячейка видима
         scrollToVisible(row, column);
     }
 
@@ -168,11 +146,15 @@ public class HexEditorView extends JFrame {
         dataTable.scrollRectToVisible(dataTable.getCellRect(row, column, true));
     }
 
+    public void setupTableSelection() {
+        dataTable.setCellSelectionEnabled(true);
+        dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    }
+
 
     private void setupTableContextMenu() {
         dataTable.setComponentPopupMenu(editingView.getContextMenu());
 
-        // Слушатель для показа меню только в режиме редактирования
         dataTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
@@ -193,12 +175,6 @@ public class HexEditorView extends JFrame {
         });
     }
 
-    private void setupTableSelection() {
-        dataTable.setCellSelectionEnabled(true);
-        dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    }
-
-    // Выпадающие окна
 
     public void showErrorDialog(String message, String title) {
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
@@ -229,8 +205,6 @@ public class HexEditorView extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
     }
-
-    //ПЕРЕРИСОВКА ТАБЛИЦЫ
 
     public void updateTableData() {
         ((HexTableModel) tableModel).fireTableDataChanged();
