@@ -22,7 +22,7 @@ public class HexEditorController {
         new LinesAndItemsSettingsController(view.getSettingsView(), helper, editorModel, view);
         new SelectionController(view.getLabelInfoView(), view, editorModel);
         new BlockBytesController(view, editorModel, helper, view.getBlockBytesView());
-
+        new FileSavingController(editorModel, view.getFileSaveView());
     }
 
 

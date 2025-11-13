@@ -1,13 +1,7 @@
 package view;
 
 import model.HexTableModel;
-import view.components.BlockBytesView;
-import view.components.EditingView;
-import view.components.FileOpenView;
-import view.components.LabelInfoView;
-import view.components.LinesAndItemsSettingsView;
-import view.components.PaginationView;
-import view.components.SearchView;
+import view.components.*;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -31,6 +25,8 @@ public class HexEditorView extends JFrame {
     private SearchView searchView;
     private EditingView editingView;
     private JTable dataTable;
+    private FileSaveView fileSaveView;
+
 
     public static final int YES_OPTION = JOptionPane.YES_OPTION;
 
@@ -47,7 +43,7 @@ public class HexEditorView extends JFrame {
         this.searchView = new SearchView();
         this.editingView = new EditingView();
         this.dataTable = new JTable(tableModel);
-
+        this.fileSaveView = new FileSaveView();
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(Box.createVerticalGlue());
@@ -66,7 +62,7 @@ public class HexEditorView extends JFrame {
         panel.add(labelInfoView.getLabelPanel());
         panel.add(searchView.getSearchPanel());
         panel.add(editingView.getEnableEditingPanel());
-
+        panel.add(fileSaveView.getFileSavingPanel());
         setupTableContextMenu();
         setupTableSelection();
 
@@ -75,6 +71,10 @@ public class HexEditorView extends JFrame {
         setVisible(true);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+    }
+
+    public FileSaveView getFileSaveView() {
+        return fileSaveView;
     }
 
     public BlockBytesView getBlockBytesView() {
