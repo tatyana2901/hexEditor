@@ -43,6 +43,7 @@ public class HexEditorView extends JFrame {
         this.searchView = new SearchView();
         this.editingView = new EditingView();
         this.dataTable = new JTable(tableModel);
+        dataTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         this.fileSaveView = new FileSaveView();
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -54,6 +55,11 @@ public class HexEditorView extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(dataTable);
 
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(800, 400));
+
+        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         panel.add(fileOpenView.getFileSelectionPanel());
         panel.add(scrollPane);
         panel.add(paginationView.getPaginationPanel());
