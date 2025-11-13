@@ -32,7 +32,7 @@ public class HexTableModel extends AbstractTableModel {
 
             if (columnIndex == 0) {
                 return String.format("%08X", (rowIndex * hexEditorModel.getItemsPerLine() + getPageOffset(hexEditorModel.getCurrentPageNumber(), hexEditorModel.getItemsPerUnchangedPage()))); // Форматируем адрес в шестнадцатеричном виде с учетом постраничного отображения
-            } else if (index >= 0 && index < hexEditorModel.getData().length) {
+            } else if (index >= 0 && index < hexEditorModel.getData().length / hexEditorModel.getType().getBlockSize()) {
                 return getFormattedRow(hexEditorModel.getType(), index);
             } else {
                 return "";
