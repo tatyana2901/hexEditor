@@ -41,7 +41,14 @@ public class EditingService {
     public void editSingleByte(int position, byte newValue) {
         PageCache.setByteByIndex(editorModel.getCurrentPageNumber(), position, newValue, editorModel.getItemsPerUnchangedPage());
     }
-
+    /**
+     * Вычисляет диапазон выделенных байтов в абсолютных координатах файла.
+     *
+     * @param selectedRows массив выделенных строк
+     * @param selectedColumns массив выделенных столбцов
+     * @return массив [начальная позиция, длина] в байтах
+     * @throws IllegalArgumentException если выделение некорректно или выходит за границы файла
+     */
     public int[] getSelectedBytesRange(int[] selectedRows, int[] selectedColumns) {
         if (selectedRows == null || selectedColumns == null ||
                 selectedRows.length == 0 || selectedColumns.length == 0) {

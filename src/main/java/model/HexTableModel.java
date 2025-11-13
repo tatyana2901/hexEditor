@@ -24,7 +24,13 @@ public class HexTableModel extends AbstractTableModel {
     public int getColumnCount() {
         return hexEditorModel.getItemsPerLine() + 1;
     }
-
+    /**
+     * Возвращает значение для ячейки таблицы по указанным индексам.
+     *
+     * @param rowIndex индекс строки
+     * @param columnIndex индекс столбца
+     * @return отформатированное значение ячейки или пустую строку
+     */
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         try {
@@ -44,7 +50,13 @@ public class HexTableModel extends AbstractTableModel {
         }
     }
 
-
+    /**
+     * Форматирует значение ячейки в соответствии с типом данных.
+     *
+     * @param type тип данных для форматирования
+     * @param index индекс элемента в данных
+     * @return отформатированное строковое представление значения
+     */
     private String getFormattedRow(DataType type, int index) {
         try {
             byte[] bytesToConvert = BlockDataConverter.getBlockByPositionInList(hexEditorModel.getData(), type.getBlockSize(), index);

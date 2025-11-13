@@ -17,9 +17,9 @@ public class DisplayHelper {
 
 
     public void displayPage(int pageNumber) throws IOException {
-        model.loadPageData(pageNumber); //загрузить данные страницы
-        model.setCurrentPageNumber(pageNumber); // поменять номер текущей страницы
-        view.getPaginationView().setPageInfo(model.getCurrentPageNumber(), (int) model.getTotalPages()); //обновить информацию о текущей странице
+        model.loadPageData(pageNumber);
+        model.setCurrentPageNumber(pageNumber);
+        view.getPaginationView().setPageInfo(model.getCurrentPageNumber(), (int) model.getTotalPages());
         view.updateTableData();
     }
 

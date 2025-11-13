@@ -4,7 +4,14 @@ import java.nio.ByteBuffer;
 
 public class BlockDataConverter {
 
-
+    /**
+     * Извлекает блок байтов заданного размера из массива по указанному индексу.
+     *
+     * @param bytes исходный массив байтов
+     * @param blockSize размер блока
+     * @param index блока
+     * @return массив байтов блока (может быть меньше blockSize в конце массива)
+     */
     public static byte[] getBlockByPositionInList(byte[] bytes, int blockSize, int index) {
         int positionInList = index * blockSize;
         if (positionInList >= bytes.length) {

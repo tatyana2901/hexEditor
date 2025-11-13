@@ -31,36 +31,32 @@ public class SearchController {
         searchView.addNextSearchListener(e -> getNextSearchItemResult());
         searchView.addPrevSearchListener(e -> getPrevSearchItemResult());
     }
-
+    /**
+     * Выполняет поиск байтов по заданному шаблону и маске.
+     *
+     * @throws IllegalStateException если поиск выполняется не в режиме BYTE
+     */
     private void performSearch() {
         try {
-
             if (editorModel.getType() != DataType.BYTE) {
-
                 view.showErrorDialog("Поиск байт доступен только в режиме отображения BYTE", "Ошибка");
                 return;
             }
             searchService.clearSearchResults();
-
             String pattern = searchView.getSearchPattern();
             String mask = searchView.getSearchMask();
-
             if (pattern.isEmpty()) {
                 return;
             }
-
             searchService.setMask(mask);
             searchService.setPattern(pattern);
-
             searchService.searchBytes(1);
             if (searchService.getResultsCount() == 0) {
                 view.showInfoDialog("Ничего не найдено", "NoResult");
-
             } else {
                 highlightSearchResult();
                 updateSearchStatus();
             }
-
         } catch (Exception ex) {
             view.showErrorDialog("Ошибка поиска: " + ex.getMessage(), "Ошибка");
         }
@@ -83,29 +79,21 @@ public class SearchController {
 
     private void getNextSearchItemResult() {
         try {
-
             if (searchService.getCurrentResultIndex() + 1 == searchService.getResultsCount()) {
-                //запустить новый поиск
                 if (searchService.getCurrentSearchPage() < editorModel.getTotalPages()) {
                     searchService.searchBytes(searchService.getCurrentSearchPage() + 1);
                 }
-
             } else {
-
                 searchService.increaseCurrentSearchResultIndex();
-
             }
             displaySearchResultOnPage();
 
         } catch (Exception e) {
             view.showErrorDialog("Ошибка перехода к следующему результату поиска: " + e.getMessage(), "Ошибка");
         }
-
-
     }
 
     private void getPrevSearchItemResult() {
-
         try {
             searchService.decreaseCurrentSearchIndex();
             displaySearchResultOnPage();

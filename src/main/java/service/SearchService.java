@@ -75,7 +75,15 @@ public class SearchService {
         findBytes(pattern, mask, pageNumberToStart);
 
     }
-
+/**
+ * Выполняет поиск байтов по шаблону и маске начиная с указанной страницы.
+ *
+ * @param searchPattern шаблон для поиска
+ * @param mask маска для поиска (null, если маска не используется)
+ * @param pageNumberToStart номер страницы для начала поиска
+ * @throws IOException если происходит ошибка чтения файла
+ * @throws IllegalStateException если файл не открыт
+ */
     private void findBytes(byte[] searchPattern, byte[] mask, int pageNumberToStart) throws IOException {
         if (editorModel.getFile() == null) {
             throw new IllegalStateException("Файл не открыт");

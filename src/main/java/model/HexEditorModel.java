@@ -98,7 +98,13 @@ public class HexEditorModel {
         }
     }
 
-
+    /**
+     * Читает данные страницы из файла и кэширует их.
+     *
+     * @param pageNumber номер страницы
+     * @return массив байтов данных страницы
+     * @throws IOException если происходит ошибка чтения файла
+     */
     public byte[] readPageData(int pageNumber) throws IOException {
 
         long startPosition = (pageNumber - 1) * (long) itemsPerLine * linesPerPage * type.getBlockSize();
@@ -111,7 +117,14 @@ public class HexEditorModel {
             return bytesPageData;
         }
     }
-
+    /**
+     * Загружает данные страницы из кэша или файла.
+     *
+     * @param pageNumber номер страницы
+     * @throws IOException если происходит ошибка чтения файла
+     * @throws IllegalArgumentException если номер страницы некорректен
+     * @throws IllegalStateException если файл не открыт
+     */
     public void loadPageData(int pageNumber) throws IOException {
 
         if (pageNumber < 1 || pageNumber > totalPages) {

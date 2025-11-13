@@ -92,7 +92,13 @@ public class EditingController {
         return true;
     }
 
-
+    /**
+     * Изменяет значение одного байта в текущей позиции выделения.
+     * Запрашивает у пользователя новое HEX-значение и подтверждение,
+     * затем выполняет изменение через сервис редактирования.
+     *
+     * @throws IllegalStateException если нет активного выделения или данные не загружены
+     */
     private void changeSingleByteValue() {
         if (!validateEditConditions()) return;
 
@@ -104,8 +110,6 @@ public class EditingController {
         }
         Integer position = selection[0];
 
-
-        // Запрашиваем новое значение
         byte[] newValueBytes = requestHexBytesFromUser(
                 "Изменение байта",
                 String.format("Введите новое значение байта (hex, 00-FF):\nПозиция: %d", position)
@@ -116,26 +120,30 @@ public class EditingController {
             return;
         }
 
-        // Подтверждение
+
         int confirm = view.showConfirmDialog("Подтверждение изменения", String.format("Подтвердите изменение:\n\nПозиция: %d\nНовое значение: %02X",
                 position, newValueBytes[0]));
 
         if (confirm != view.YES_OPTION) return;
 
-        // Выполняем операцию
         executeEditingOperation(
-                () -> {
-                    editingService.editSingleByte(position, newValueBytes[0]);
-                },
+                () -> editingService.editSingleByte(position, newValueBytes[0]),
                 String.format("Байт успешно изменен\nПозиция: %d\nНовое значение: %02X",
                         position, newValueBytes[0])
         );
     }
 
+    /**
+     * Вставляет байты в указанную позицию в одном из двух режимов.
+     *
+     * @param withShift true - вставка со сдвигом существующих данных,
+     *                 false - замена существующих данных новыми байтами
+     * @throws IllegalStateException если невозможно выполнить редактирование
+     */
     private void insertBytes(boolean withShift) {
         if (!validateEditConditions()) return;
 
-        // Получаем позицию
+
         int[] selection = getSelection();
         if (selection == null) {
             view.showErrorDialog("Выберите позицию для вставки", "Ошибка");
@@ -143,7 +151,7 @@ public class EditingController {
         }
         Integer position = selection[0];
 
-        // Запрашиваем байты для вставки
+
         byte[] bytesToInsert = requestHexBytesFromUser(
                 "Вставка байтов",
                 "Введите байты для вставки (hex, через пробел или без разделителей):\n" +
@@ -157,7 +165,7 @@ public class EditingController {
             return;
         }
 
-        // Подтверждение
+
         int confirm = view.showConfirmDialog("Подтверждение вставки", String.format("Подтвердите вставку:\n\n" +
                         "Позиция: %d\n" +
                         "Количество байт: %d\n" +
@@ -171,7 +179,7 @@ public class EditingController {
 
         if (confirm != view.YES_OPTION) return;
 
-        // Выполняем операцию
+
         String operationName = withShift ? "вставлены со сдвигом" : "вставлены с заменой";
         executeEditingOperation(
                 () -> {
@@ -186,7 +194,12 @@ public class EditingController {
         );
     }
 
-
+    /**
+     * Удаляет выделенные байты в указанном режиме.
+     *
+     * @param withShift true - удаление со сдвигом оставшихся данных,
+     *                 false - обнуление значений выделенных байтов
+     */
     private void deleteSelectedBytes(boolean withShift) {
         if (!validateEditConditions()) return;
         try {
@@ -207,7 +220,7 @@ public class EditingController {
 
             if (confirm != view.YES_OPTION) return;
 
-            // Используем executeEditingOperation для единообразия
+
             executeEditingOperation(
                     () -> {
                         if (withShift) {

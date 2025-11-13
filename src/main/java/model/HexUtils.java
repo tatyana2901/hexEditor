@@ -1,6 +1,13 @@
 package model;
 
 public class HexUtils {
+
+    /**
+     * Парсит строку с HEX-данными в массив байтов.
+     *
+     * @param input строка с HEX-данными (с разделителями или без)
+     * @return массив байтов или null при ошибке парсинга
+     */
     public static byte[] parseHexBytes(String input) {
         if (input == null || input.trim().isEmpty()) {
             return null;

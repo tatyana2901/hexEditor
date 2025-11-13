@@ -21,7 +21,11 @@ public class FileSavingController {
         this.fileSaveView = fileSaveView;
         fileSaveView.addSaveFileButtonListener(e -> saveChangesToTxtFile());
     }
-
+    /**
+     * Сохраняет изменения в новый файл, объединяя кэшированные и оригинальные данные.
+     *
+     * @throws IOException если происходит ошибка ввода-вывода при чтении/записи файлов
+     */
     public void saveChangesToTxtFile() {
         fileSaveView.clearSaveResult();
         long lastPageNumber = editorModel.getTotalPages();

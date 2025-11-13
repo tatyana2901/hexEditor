@@ -44,29 +44,29 @@ public class PageCache {
         }
         return cache.get(pageNumber).getPageData();
     }
-
+    /**
+     * Вычисляет смещение для указанной страницы с учетом измененных страниц в кэше.
+     *
+     * @param pageNumber номер страницы
+     * @param unChangedPageItemsCount количество элементов на неизмененной странице
+     * @return смещение в байтах для указанной страницы
+     * @throws IllegalArgumentException если номер страницы не положительный
+     */
     public static int getPageOffset(int pageNumber, int unChangedPageItemsCount) {
-
 
         if (pageNumber <= 0) {
             throw new IllegalArgumentException("Номер страницы должен быть положительным.");
         }
-
         if (!isDirtyPageExist()) {
             return unChangedPageItemsCount * (pageNumber - 1);
         }
-
         int changedPagesCount = 0;
         int changedPagesItemsSum = 0;
-
-
         for (Map.Entry<Integer, PageCache> entry : cache.entrySet()) {
-
             if (entry.getKey() < pageNumber && entry.getValue().isDirty) {
                 changedPagesItemsSum = changedPagesItemsSum + entry.getValue().getPageData().length;
                 changedPagesCount++;
             }
-
         }
         int unchangedPagesCount = pageNumber - 1 - changedPagesCount;
         return unchangedPagesCount * unChangedPageItemsCount + changedPagesItemsSum;
@@ -78,7 +78,14 @@ public class PageCache {
         }
         return index;
     }
-
+    /**
+     * Устанавливает значение байта по указанному индексу на странице.
+     *
+     * @param pageNumber номер страницы
+     * @param index индекс байта на странице
+     * @param value новое значение байта
+     * @param unChangedPageItemsCount количество элементов на неизмененной странице
+     */
     public static void setByteByIndex(int pageNumber, int index, byte value, int unChangedPageItemsCount) {
 
         if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0) {
@@ -87,7 +94,15 @@ public class PageCache {
             cacheBytes[indexOnPage] = value;
         }
     }
-
+    /**
+     * Устанавливает массив байтов на странице начиная с указанного индекса.
+     *
+     * @param pageNumber номер страницы
+     * @param index начальный индекс для вставки
+     * @param values массив байтов для вставки
+     * @param unChangedPageItemsCount количество элементов на неизмененной странице
+     * @throws IllegalArgumentException если вставка выходит за границы страницы
+     */
     public static void setBytesArrayByIndex(int pageNumber, int index, byte[] values, int unChangedPageItemsCount) {
 
         if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0 && values != null) {
@@ -104,7 +119,14 @@ public class PageCache {
         }
 
     }
-
+    /**
+     * Вставляет массив байтов на страницу со сдвигом существующих данных.
+     *
+     * @param pageNumber номер страницы
+     * @param index индекс для вставки
+     * @param values массив байтов для вставки
+     * @param unChangedPageItemsCount количество элементов на неизмененной странице
+     */
     public static void insertBytesArrayWithShift(int pageNumber, int index, byte[] values, int unChangedPageItemsCount) {
 
         if (pageNumber > 0 && index >= 0 && unChangedPageItemsCount > 0 && values != null) {
@@ -124,7 +146,14 @@ public class PageCache {
         }
     }
 
-
+    /**
+     * Удаляет байты со страницы со сдвигом оставшихся данных.
+     *
+     * @param pageNumber номер страницы
+     * @param index начальный индекс удаления
+     * @param length количество удаляемых байтов
+     * @param unChangedPageItemsCount количество элементов на неизмененной странице
+     */
     public static void deleteBytesWithShift(int pageNumber, int index, int length, int unChangedPageItemsCount) {
 
         if (pageNumber > 0 && index >= 0 && length > 0 && unChangedPageItemsCount > 0) {
