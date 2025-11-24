@@ -8,18 +8,21 @@ import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ActionListener;
 
 public class BlockBytesView {
-    private JMenuBar menuBar;
-    private JMenu viewMenu;
-    private JMenu dataTypeMenu;
-    private JMenuItem byteItem, shortItem, intItem, longItem, floatItem, doubleItem;
-    private JRadioButtonMenuItem signedItem, unsignedItem;
-    private ButtonGroup integerSignGroup;
+    private final JMenuBar menuBar;
+    private final JMenuItem byteItem;
+    private final JMenuItem shortItem;
+    private final JMenuItem intItem;
+    private final JMenuItem longItem;
+    private final JMenuItem floatItem;
+    private final JMenuItem doubleItem;
+    private final JRadioButtonMenuItem signedItem;
+    private final JRadioButtonMenuItem unsignedItem;
 
 
     public BlockBytesView() {
         menuBar = new JMenuBar();
-        viewMenu = new JMenu("Вид");
-        dataTypeMenu = new JMenu("Тип данных");
+        JMenu viewMenu = new JMenu("Вид");
+        JMenu dataTypeMenu = new JMenu("Тип данных");
 
         byteItem = new JMenuItem("Byte");
         shortItem = new JMenuItem("Short");
@@ -38,7 +41,7 @@ public class BlockBytesView {
         JMenu integerSignMenu = new JMenu("Целое число: знак");
         signedItem = new JRadioButtonMenuItem("Со знаком");
         unsignedItem = new JRadioButtonMenuItem("Без знака");
-        integerSignGroup = new ButtonGroup();
+        ButtonGroup integerSignGroup = new ButtonGroup();
         integerSignGroup.add(signedItem);
         integerSignGroup.add(unsignedItem);
 

@@ -2,6 +2,8 @@ package controller;
 
 import model.HexEditorModel;
 import model.cache.PageCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import view.components.FileSaveView;
 
 import java.io.BufferedOutputStream;
@@ -13,14 +15,17 @@ import java.io.RandomAccessFile;
 
 
 public class FileSavingController {
-    private HexEditorModel editorModel;
-    private FileSaveView fileSaveView;
+
+    private static final Logger logger = LoggerFactory.getLogger(FileSavingController.class);
+    private final HexEditorModel editorModel;
+    private final FileSaveView fileSaveView;
 
     public FileSavingController(HexEditorModel editorModel, FileSaveView fileSaveView) {
         this.editorModel = editorModel;
         this.fileSaveView = fileSaveView;
         fileSaveView.addSaveFileButtonListener(e -> saveChangesToTxtFile());
     }
+
     /**
      * Сохраняет изменения в новый файл, объединяя кэшированные и оригинальные данные.
      *
@@ -66,10 +71,10 @@ public class FileSavingController {
             fileSaveView.appendSaveResult("Файл сохранен в: " + destinationFile.getAbsolutePath());
         } catch (FileNotFoundException e) {
             fileSaveView.appendSaveResult("Ошибка: Файл не найден - " + e.getMessage());
-            System.out.println("Файл не найден");
+            logger.error("fail saveChangesToTxtFile ", e);
         } catch (IOException e) {
             fileSaveView.appendSaveResult("Ошибка ввода-вывода: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("fail saveChangesToTxtFile ", e);
         }
 
 

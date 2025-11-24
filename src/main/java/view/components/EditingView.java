@@ -10,17 +10,17 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
 public class EditingView {
-    private JPanel enableEditingPanel;
-    private JButton enableEditButton;
-    private JLabel editStatusLabel;
+    private final JPanel enableEditingPanel;
+    private final JButton enableEditButton;
+    private final JLabel editStatusLabel;
     private boolean editMode = false;
 
-    private JPopupMenu contextMenu;
-    private JMenuItem deleteWithShiftItem;
-    private JMenuItem deleteWithZeroItem;
-    private JMenuItem insertOverwriteItem;
-    private JMenuItem insertShiftItem;
-    private JMenuItem changeByteValue;
+    private final JPopupMenu contextMenu;
+    private final JMenuItem deleteWithShiftItem;
+    private final JMenuItem deleteWithZeroItem;
+    private final JMenuItem insertOverwriteItem;
+    private final JMenuItem insertShiftItem;
+    private final JMenuItem changeByteValue;
 
 
     public EditingView() {

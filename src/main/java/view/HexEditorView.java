@@ -16,16 +16,16 @@ import javax.swing.table.TableModel;
 import java.awt.Dimension;
 
 public class HexEditorView extends JFrame {
-    private TableModel tableModel;
-    private FileOpenView fileOpenView;
-    private PaginationView paginationView;
-    private LinesAndItemsSettingsView settingsView;
-    private BlockBytesView blockBytesView;
-    private LabelInfoView labelInfoView;
-    private SearchView searchView;
-    private EditingView editingView;
-    private JTable dataTable;
-    private FileSaveView fileSaveView;
+    private final TableModel tableModel;
+    private final FileOpenView fileOpenView;
+    private final PaginationView paginationView;
+    private final LinesAndItemsSettingsView settingsView;
+    private final BlockBytesView blockBytesView;
+    private final LabelInfoView labelInfoView;
+    private final SearchView searchView;
+    private final EditingView editingView;
+    private final JTable dataTable;
+    private final FileSaveView fileSaveView;
 
 
     public static final int YES_OPTION = JOptionPane.YES_OPTION;

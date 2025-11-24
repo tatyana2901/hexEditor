@@ -7,12 +7,12 @@ import javax.swing.JTextField;
 import java.awt.event.ActionListener;
 
 public class PaginationView {
-    private JPanel paginationPanel;
-    private JTextField pageNumberField;
-    private JLabel pageInfoLabel;
-    private JButton loadPageButton;
-    private JButton nextPageButton;
-    private JButton prevPageButton;
+    private final JPanel paginationPanel;
+    private final JTextField pageNumberField;
+    private final JLabel pageInfoLabel;
+    private final JButton loadPageButton;
+    private final JButton nextPageButton;
+    private final JButton prevPageButton;
 
     public PaginationView() {
         paginationPanel = new JPanel();

@@ -7,9 +7,9 @@ import javax.swing.SwingConstants;
 import java.awt.GridLayout;
 
 public class LabelInfoView {
-    private JPanel labelPanel;
-    private JLabel decimalSignedLabel;
-    private JLabel decimalUnsignedLabel;
+    private final JPanel labelPanel;
+    private final JLabel decimalSignedLabel;
+    private final JLabel decimalUnsignedLabel;
 
     public LabelInfoView() {
 

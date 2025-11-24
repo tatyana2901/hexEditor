@@ -1,6 +1,8 @@
 package controller;
 
 import model.HexEditorModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import view.HexEditorView;
 import view.components.FileOpenView;
 
@@ -8,10 +10,11 @@ import java.io.File;
 import java.io.IOException;
 
 public class FileOpenController {
-    private FileOpenView fileOpenView;
-    private HexEditorModel editorModel;
-    private DisplayHelper helper;
-    private HexEditorView editorView;
+    private static final Logger logger = LoggerFactory.getLogger(FileOpenController.class);
+    private final FileOpenView fileOpenView;
+    private final HexEditorModel editorModel;
+    private final DisplayHelper helper;
+    private final HexEditorView editorView;
 
     public FileOpenController(FileOpenView fileOpenView, HexEditorModel editorModel, DisplayHelper helper, HexEditorView editorView) {
         this.fileOpenView = fileOpenView;
@@ -22,7 +25,6 @@ public class FileOpenController {
     }
 
     private void openFile() {
-
         File file = fileOpenView.showOpenFileDialog();
         if (file != null) {
             try {
@@ -31,7 +33,9 @@ public class FileOpenController {
                 fileOpenView.setFileInfo("Выбран файл: " + file.getName());
 
             } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-               editorView.showErrorDialog("Ошибка при чтении файла: " + ex.getMessage(), "Ошибка");
+                editorView.showErrorDialog("Ошибка при чтении файла: " + ex.getMessage(), "Ошибка");
+                logger.error("fail method openFile", ex);
+
             }
         }
     }

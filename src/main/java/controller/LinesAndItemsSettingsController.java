@@ -1,17 +1,19 @@
 package controller;
 
 import model.HexEditorModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import view.HexEditorView;
 import view.components.LinesAndItemsSettingsView;
 
 import java.io.IOException;
 
 public class LinesAndItemsSettingsController {
-
-    private LinesAndItemsSettingsView settingsView;
-    private DisplayHelper helper;
-    private HexEditorView view;
-    private HexEditorModel editorModel;
+    private static final Logger logger = LoggerFactory.getLogger(LinesAndItemsSettingsController.class);
+    private final LinesAndItemsSettingsView settingsView;
+    private final DisplayHelper helper;
+    private final HexEditorView view;
+    private final HexEditorModel editorModel;
 
 
     public LinesAndItemsSettingsController(LinesAndItemsSettingsView settingsView, DisplayHelper helper, HexEditorModel editorModel, HexEditorView view) {
@@ -33,8 +35,10 @@ public class LinesAndItemsSettingsController {
             view.updateTableStructure();
         } catch (ClassCastException e) {
             view.showErrorDialog("Введите целое число в качестве количества элементов в строке.", "Ошибка");
-        } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
-            view.showErrorDialog(ex.getMessage(), "Ошибка");
+            logger.error("fail  method changeItemsPerLine", e);
+        } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+            view.showErrorDialog(e.getMessage(), "Ошибка");
+            logger.error("fail  method changeItemsPerLine", e);
         }
 
     }
@@ -48,8 +52,10 @@ public class LinesAndItemsSettingsController {
 
         } catch (ClassCastException e) {
             view.showErrorDialog("Введите целое число в качестве количества строк.", "Ошибка");
+            logger.error("fail  method changeLinesPerPage",e);
         } catch (IllegalArgumentException | IllegalStateException | IOException ex) {
             view.showErrorDialog(ex.getMessage(), "Ошибка");
+            logger.error("fail  method changeLinesPerPage",ex);
         }
     }
 

@@ -9,13 +9,13 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
 public class SearchView {
-    private JPanel searchPanel = new JPanel();
-    private JTextField searchField;
-    private JTextField maskField;
-    private JButton searchButton;
-    private JButton nextButton;
-    private JButton prevButton;
-    private JLabel statusLabel;
+    private final JPanel searchPanel = new JPanel();
+    private final JTextField searchField;
+    private final JTextField maskField;
+    private final JButton searchButton;
+    private final JButton nextButton;
+    private final JButton prevButton;
+    private final JLabel statusLabel;
 
     public SearchView() {
         searchPanel.setLayout(new FlowLayout(FlowLayout.LEFT));

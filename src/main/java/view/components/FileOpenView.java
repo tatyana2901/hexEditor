@@ -9,10 +9,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 public class FileOpenView {
-    private JPanel fileSelectionPanel;
-    private JFileChooser fileChooser;
-    private JLabel label;
-    private JButton openFileButton;
+    private final JPanel fileSelectionPanel;
+    private final JFileChooser fileChooser;
+    private final JLabel label;
+    private final JButton openFileButton;
 
     public FileOpenView() {
         fileSelectionPanel = new JPanel();

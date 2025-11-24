@@ -7,8 +7,8 @@ import view.HexEditorView;
 import java.io.IOException;
 
 public class DisplayHelper {
-    private HexEditorView view;
-    private HexEditorModel model;
+    private final HexEditorView view;
+    private final HexEditorModel model;
 
     public DisplayHelper(HexEditorModel model, HexEditorView view) {
         this.model = model;

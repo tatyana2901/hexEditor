@@ -8,9 +8,9 @@ import javax.swing.event.ChangeListener;
 import java.awt.FlowLayout;
 
 public class LinesAndItemsSettingsView {
-    private JSpinner linesPerPageSpinner;
-    private JSpinner itemsPerLineSpinner;
-    private JPanel panel;
+    private final JSpinner linesPerPageSpinner;
+    private final JSpinner itemsPerLineSpinner;
+    private final JPanel panel;
 
     public LinesAndItemsSettingsView() {
         panel = new JPanel();

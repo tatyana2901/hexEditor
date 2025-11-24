@@ -9,7 +9,7 @@ import static model.cache.PageCache.getPageOffset;
 
 public class EditingService {
 
-    private HexEditorModel editorModel;
+    private final HexEditorModel editorModel;
 
     public EditingService(HexEditorModel editorModel) {
         this.editorModel = editorModel;

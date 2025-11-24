@@ -6,9 +6,9 @@ import view.HexEditorView;
 import view.components.LabelInfoView;
 
 public class SelectionController {
-    private SelectionService selectionService;
-    private LabelInfoView labelInfoView;
-    private HexEditorView view;
+    private final SelectionService selectionService;
+    private final LabelInfoView labelInfoView;
+    private final HexEditorView view;
 
     public SelectionController(LabelInfoView labelInfoView, HexEditorView view, HexEditorModel editorModel) {
         this.selectionService = new SelectionService(editorModel);
@@ -30,21 +30,13 @@ public class SelectionController {
     private void onByteSelectionChanged() {
         int selectedRow = view.getSelectedRow();
         int selectedColumn = view.getSelectedColumn();
-
         if (selectedRow >= 0 && selectedColumn > 0) {
-            try {
-                Object value = selectionService.getValueAtTableCoordinates(selectedRow, selectedColumn);
-
-                if (value instanceof Byte) {
-                    byte byteValue = (Byte) value;
-                    labelInfoView.setByteLabelText(byteValue);
-                } else {
-                    labelInfoView.clearByteLabelText();
-                }
-
-            } catch (Exception ex) {
+            Object value = selectionService.getValueAtTableCoordinates(selectedRow, selectedColumn);
+            if (value instanceof Byte) {
+                byte byteValue = (Byte) value;
+                labelInfoView.setByteLabelText(byteValue);
+            } else {
                 labelInfoView.clearByteLabelText();
-                view.showErrorDialog(ex.getMessage(), "Ошибка");
             }
         } else {
             labelInfoView.clearByteLabelText();

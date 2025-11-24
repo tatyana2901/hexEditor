@@ -9,7 +9,7 @@ public class PageCache {
     private byte[] pageData;
     private int pageNumber;
     private boolean isDirty;
-    private static Map<Integer, PageCache> cache = new HashMap<>();
+    private static final Map<Integer, PageCache> cache = new HashMap<>();
 
     public PageCache(byte[] pageData, int pageNumber) {
         if (pageNumber > 0 && pageData != null) {

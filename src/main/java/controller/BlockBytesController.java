@@ -8,10 +8,10 @@ import view.components.BlockBytesView;
 import java.io.IOException;
 
 public class BlockBytesController {
-    private HexEditorView view;
-    private HexEditorModel editorModel;
-    private DisplayHelper helper;
-    private BlockBytesView blockBytesView;
+    private final HexEditorView view;
+    private final HexEditorModel editorModel;
+    private final DisplayHelper helper;
+    private final BlockBytesView blockBytesView;
 
 
     public BlockBytesController(HexEditorView view, HexEditorModel editorModel, DisplayHelper helper, BlockBytesView blockBytesView) {

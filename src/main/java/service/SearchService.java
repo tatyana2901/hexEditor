@@ -5,14 +5,15 @@ import model.HexUtils;
 import model.cache.PageCache;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static model.cache.PageCache.*;
 
 public class SearchService {
 
-    private HexEditorModel editorModel;
-    private List<SearchResult> searchResults;
+    private final HexEditorModel editorModel;
+    private final List<SearchResult> searchResults;
     private int currentSearchPage;
     private int currentSearchResultIndex;
     private String pattern;

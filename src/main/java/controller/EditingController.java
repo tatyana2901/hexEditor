@@ -1,6 +1,8 @@
 package controller;
 
 import model.DataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.EditingService;
 import model.HexEditorModel;
 import model.HexUtils;
@@ -10,12 +12,12 @@ import view.components.EditingView;
 import java.io.IOException;
 
 public class EditingController {
-
-    private HexEditorView view;
-    private HexEditorModel editorModel;
-    private EditingService editingService;
-    private DisplayHelper helper;
-    private EditingView editingView;
+    private static final Logger logger = LoggerFactory.getLogger(EditingController.class);
+    private final HexEditorView view;
+    private final HexEditorModel editorModel;
+    private final EditingService editingService;
+    private final DisplayHelper helper;
+    private final EditingView editingView;
 
     public EditingController(HexEditorView view, HexEditorModel editorModel, DisplayHelper helper, EditingView editingView) {
         this.editingService = new EditingService(editorModel);
@@ -52,12 +54,10 @@ public class EditingController {
             view.showInfoDialog(successMessage, "Успех");
         } catch (IllegalStateException | IllegalArgumentException ex) {
             view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
+            logger.error("fail method executeEditingOperation",ex);
         } catch (IOException ex) {
             view.showErrorDialog("Ошибка ввода-вывода: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
-        } catch (Exception ex) {
-            view.showErrorDialog("Неизвестная ошибка: " + ex.getMessage(), "Ошибка");
-            ex.printStackTrace();
+            logger.error("fail method executeEditingOperation",ex);
         }
     }
 
@@ -137,7 +137,7 @@ public class EditingController {
      * Вставляет байты в указанную позицию в одном из двух режимов.
      *
      * @param withShift true - вставка со сдвигом существующих данных,
-     *                 false - замена существующих данных новыми байтами
+     *                  false - замена существующих данных новыми байтами
      * @throws IllegalStateException если невозможно выполнить редактирование
      */
     private void insertBytes(boolean withShift) {
@@ -198,7 +198,7 @@ public class EditingController {
      * Удаляет выделенные байты в указанном режиме.
      *
      * @param withShift true - удаление со сдвигом оставшихся данных,
-     *                 false - обнуление значений выделенных байтов
+     *                  false - обнуление значений выделенных байтов
      */
     private void deleteSelectedBytes(boolean withShift) {
         if (!validateEditConditions()) return;
@@ -237,6 +237,7 @@ public class EditingController {
 
         } catch (IllegalStateException | IllegalArgumentException ex) {
             view.showErrorDialog("Ошибка: " + ex.getMessage(), "Ошибка");
+            logger.error("fail method deleteSelectedBytes",ex);
         }
 
     }

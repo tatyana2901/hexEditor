@@ -2,6 +2,8 @@ package controller;
 
 import model.DataType;
 import model.HexEditorModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import service.SearchService;
 import view.HexEditorView;
 import view.components.SearchView;
@@ -9,12 +11,12 @@ import view.components.SearchView;
 import java.io.IOException;
 
 public class SearchController {
-
-    private SearchView searchView;
-    private HexEditorModel editorModel;
-    private DisplayHelper helper;
-    private HexEditorView view;
-    private SearchService searchService;
+    private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
+    private final SearchView searchView;
+    private final HexEditorModel editorModel;
+    private final DisplayHelper helper;
+    private final HexEditorView view;
+    private final SearchService searchService;
 
     public SearchController(SearchView searchView, HexEditorModel editorModel, DisplayHelper helper, HexEditorView view) {
         this.searchView = searchView;
@@ -31,6 +33,7 @@ public class SearchController {
         searchView.addNextSearchListener(e -> getNextSearchItemResult());
         searchView.addPrevSearchListener(e -> getPrevSearchItemResult());
     }
+
     /**
      * Выполняет поиск байтов по заданному шаблону и маске.
      *
@@ -57,8 +60,9 @@ public class SearchController {
                 highlightSearchResult();
                 updateSearchStatus();
             }
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             view.showErrorDialog("Ошибка поиска: " + ex.getMessage(), "Ошибка");
+            logger.error("fail method performSearch",ex);
         }
     }
 
@@ -73,6 +77,7 @@ public class SearchController {
             }
         } catch (IOException e) {
             view.showErrorDialog("Ошибка перехода: " + e.getMessage(), "Ошибка");
+            logger.error("fail method highlightSearchResult",e);
 
         }
     }
@@ -88,18 +93,15 @@ public class SearchController {
             }
             displaySearchResultOnPage();
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             view.showErrorDialog("Ошибка перехода к следующему результату поиска: " + e.getMessage(), "Ошибка");
+            logger.error("fail method getNextSearchItemResult",e);
         }
     }
 
     private void getPrevSearchItemResult() {
-        try {
             searchService.decreaseCurrentSearchIndex();
             displaySearchResultOnPage();
-        } catch (Exception e) {
-            view.showErrorDialog("Ошибка перехода к предыдущему результату поиска:  " + e.getMessage(), "Ошибка");
-        }
     }
 
     public void displaySearchResultOnPage() {

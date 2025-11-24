@@ -5,15 +5,10 @@ import view.HexEditorView;
 
 
 public class HexEditorController {
-    private HexEditorView view;
-    private HexEditorModel editorModel;
-    private DisplayHelper helper;
 
 
     public HexEditorController(HexEditorView view, HexEditorModel editorModel) {
-        this.view = view;
-        this.editorModel = editorModel;
-        this.helper = new DisplayHelper(editorModel, view);
+        DisplayHelper helper = new DisplayHelper(editorModel, view);
 
         new EditingController(view, editorModel, helper, view.getEditingView());
         new SearchController(view.getSearchView(), editorModel, helper, view);

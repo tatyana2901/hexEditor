@@ -9,9 +9,9 @@ import java.awt.event.ActionListener;
 
 public class FileSaveView {
 
-    private JPanel fileSavingPanel;
-    private JButton saveFileButton;
-    private JTextArea saveResultTextArea;
+    private final JPanel fileSavingPanel;
+    private final JButton saveFileButton;
+    private final JTextArea saveResultTextArea;
 
     public FileSaveView() {
         this.fileSavingPanel = new JPanel();
